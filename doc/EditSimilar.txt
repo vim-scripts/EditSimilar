@@ -1,0 +1,257 @@
+*EditSimilar.txt*       Commands to edit files with a similar filename. 
+
+			EDIT SIMILAR    by Ingo Karkat
+							     *EditSimilar.vim*
+description			|EditSimilar-description|
+usage	    			|EditSimilar-usage|
+installation   			|EditSimilar-installation|
+configuration  			|EditSimilar-configuration|
+integration			|EditSimilar-integration|
+limitations			|EditSimilar-limitations|
+assumptions			|EditSimilar-assumptions|
+known problems			|EditSimilar-known-problems|
+todo				|EditSimilar-todo|
+history				|EditSimilar-history|
+
+==============================================================================
+DESCRIPTION					     *EditSimilar-description*
+
+Files edited in VIM often relate to one another; maybe they just differ in
+file extensions, are numbered sequentially, or contain common patterns. One
+can use the built-in|cmdline-completion| or|filename-modifiers|like %:r to
+quickly edit a similar file, or even use special plugins, e.g. to alternate
+between source and header files (vimscript #31). 
+
+This script provides custom versions of the|:edit|,|:split|,|:vsplit|,|:file|,
+|:write| and|:saveas|commands which facilitate quick and simple editing of
+similarly named files. To quickly edit another file based on the current file,
+one can: 
+- substitute {old} with {new}			   |EditSimilar-substitutions|
+- go to previous/next numbered file or			  |EditSimilar-offset|
+  add any offset to the number
+- change the file extension				    |EditSimilar-root|
+
+To open a set of similar files, it is possible to: 
+- open all files matching a pattern in split windows	 |EditSimilar-pattern|
+
+==============================================================================
+USAGE							   *EditSimilar-usage*
+						   *EditSimilar-substitutions*
+Substitutions: Change all literal occurrences via text=replacement in the
+currently edited file (modeled after the Korn shell's "cd {old} {new}"
+command). This can also be achieved with the built-in|filename-modifiers|: >
+    :edit %:gs?pattern?replacement?
+but the syntax is difficult to memorize (it's subtly different from|:s|) and
+harder to type. 
+
+						   *:Esubst* *:EditSubstitute*
+:EditSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
+:Esubst[!] ...
+						   *Spsubst* *SplitSubstitute*
+:SplitSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
+:Spsubst[!] ...
+					       *:Vspsubst* *:VsplitSubstitute*
+:VsplitSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
+:Vspsubst[!] ...
+			Replaces all literal occurrences of {text} in the
+			currently edited file with {replacement}, and opens the
+			resulting file. If all substitutions can be made on the
+			filename, the pathspec is left alone (so you don't get
+			any false replacements on a long pathspec). Otherwise,
+			the substitutions that weren't applicable to the
+			filename are done to the full absolute pathspec. 
+
+			This way, you can substitute an the entire path by
+			specifying the same substitution twice: >
+			    /etc/test/superapp/test001.cfg
+			    :Esubstitute test=prod
+			    /etc/test/superapp/prod001.cfg
+			    :Esubstitute test=prod test=prod
+			    /etc/prod/superapp/prod001.cfg
+<			Or perform different substitutions on filename and
+			pathspec: >
+			    /etc/test/superapp/test001.cfg
+			    :Esubstitute test=prod test=production
+			    /etc/production/superapp/prod001.cfg
+<
+			Add [!] to create a new file when the substituted file
+			does not exist. 
+							     *:FileSubstitute*
+:FileSubstitute {text}={replacement} [{text}={replacement} [...]] 
+							    *:WriteSubstitute*
+:WriteSubstitute[!] {text}={replacement} [{text}={replacement} [...]] 
+							     *:SaveSubstitute*
+:SaveSubstitute[!] {text}={replacement} [{text}={replacement} [...]] 
+			Replaces all literal occurrences of {text} in the
+			currently edited file with {replacement}, and sets /
+			writes the resulting file. 
+			The [!] is needed to overwrite an existing file.
+
+
+------------------------------------------------------------------------------
+							  *EditSimilar-offset*
+Next / Previous: Add an offset to the last number in the currently edited
+file. 
+				 *:Enext* *:EditNext* *:Eprev* *:EditPrevious*
+:[N]EditNext[!] [N]
+:[N]Enext[!] [N]
+:[N]EditPrevious[!] [N]
+:[N]Eprev[!] [N]
+			     *:Spnext* *:SplitNext* *:Spprev* *:SplitPrevious*
+:[N]SplitNext[!] [N]
+:[N]Spnext[!] [N]
+:[N]SplitPrevious[!] [N]
+:[N]Spprev[!] [N]
+			 *:Vspnext* *:VsplitNext* *:Vspprev* *:VsplitPrevious*
+:[N]VsplitNext[!] [N]
+:[N]Vspnext[!] [N]
+:[N]VsplitPrevious[!] [N]
+:[N]Vspprev[!] [N]
+			Increases the last number found inside the full absolute
+			filespec of the currently edited file by [N]. (A fixed
+			number width via padding with leading zeros is maintained.) 
+			If a file with that number does not exist, the
+			substitution is retried with smaller offsets, unless [!]
+			is specified. With [!], a new file is created when the
+			substituted file does not exist. 
+			When jumping to previous numbers, the resulting number
+			will never be negative. A jump with [!] and [N] > 1 will
+			create a file with number 1, not 0, but you can still
+			create number 0 by repeating the command with [N] = 1. 
+			Examples: >
+			test007.txt in a directory also containing 003-013. 
+			:Enext	    -> test008.txt
+			:99Enext    -> test013.txt
+			:99Enext!   -> test106.txt [New File]
+			:99Eprev    -> test003.txt
+			:99Eprev!   -> test001.txt [New File]
+<
+						   *:FilePrevious* *:FileNext*
+:[N]FileNext [N]
+:[N]FilePrevious [N]
+						 *:WritePrevious* *:WriteNext*
+:[N]WriteNext[!] [N]
+:[N]WritePrevious[!] [N]
+						   *:SavePrevious* *:SaveNext*
+:[N]SaveNext[!] [N]
+:[N]SavePrevious[!] [N]
+			Increases the last number found inside the full absolute
+			filespec of the currently edited file by [N] and sets /
+			writes that file. (A fixed number width via padding with
+			leading zeros is maintained.) 
+			The [!] is needed to overwrite an existing file.
+
+
+------------------------------------------------------------------------------
+							    *EditSimilar-root*
+Root: Change the file extension in the currently edited file. 
+This is an enhanced version of the built-in: >
+    :edit %:r.{extension}
+<							  *:Eroot* *:EditRoot*
+:EditRoot[!] {extension}
+:Eroot[!] ...
+							*:Sproot* *:SplitRoot*
+:SplitRoot[!] {extension}
+:Sproot[!] ...
+						      *:Vsproot* *:VsplitRoot*
+:VsplitRoot[!] {extension}
+:Vsproot[!] ...
+			Switches the current file's extension: 
+			Edits a file with the current file's path and name, but
+			replaces the file extension with the passed one. The
+			leading '.' in {extension} is optional; use either
+			.txt or txt. To replace (or remove) multiple
+			extensions, prepend a . for each one: >
+			    myfile.txt.bak
+			    :Eroot ..cpp
+			    myfile.cpp
+			    :Eroot .
+			    myfile
+<
+			Add [!] to create a new file when the substituted file
+			does not exist. 
+
+								   *:FileRoot*
+:FileRoot {extension}
+								  *:WriteRoot*
+:WriteRoot[!] {extension}
+								   *:SaveRoot*
+:SaveRoot[!] {extension}
+			Sets / saves a file with the current file's path and
+			name, but replaces the file extension with the passed
+			one. 
+			The [!] is needed to overwrite an existing file.
+
+
+------------------------------------------------------------------------------
+							 *EditSimilar-pattern*
+Pattern: Open all files matching the pattern in split windows, similar to how
+|:argadd|{name} adds all matching files to the argument list. 
+
+						      *:Sppat* *:SplitPattern*
+:SplitPattern {file-pattern}
+:Sppat ...
+						    *:Vsppat* *:VsplitPattern*
+:VsplitPattern {file-pattern}
+:Vsppat ...
+			Open all files matching {file-pattern} in split windows.
+			If one of the files is already open, no second split is
+			generated. 
+			Makes all windows the same size if more than one has
+			been opened.  
+
+==============================================================================
+INSTALLATION					    *EditSimilar-installation*
+
+This script is packaged as a|vimball|. If you have the "gunzip" decompressor
+in your PATH, simply edit the *.vba.gz package in VIM; otherwise, decompress
+the archive first, e.g. using WinZip. Inside VIM, install by sourcing the
+vimball or via the|:UseVimball|command. >
+    vim EditSimilar.vba.gz
+    :so %
+To uninstall, use the|:RmVimball|command. 
+
+DEPENDENCIES					    *EditSimilar-dependencies*
+
+- Requires VIM 7.0 or higher. 
+
+==============================================================================
+CONFIGURATION					   EditSimilar-configuration
+
+==============================================================================
+INTEGRATION					     EditSimilar-integration
+
+==============================================================================
+LIMITATIONS					     EditSimilar-limitations
+
+==============================================================================
+ASSUMPTIONS					     EditSimilar-assumptions
+
+==============================================================================
+KNOWN PROBLEMS					  EditSimilar-known-problems
+
+==============================================================================
+TODO							    EditSimilar-todo
+
+==============================================================================
+HISTORY							 *EditSimilar-history*
+
+1.00	18-Feb-2009
+First published version. 
+
+0.01	29-Jan-2009
+Started development. 
+
+---	20-Jan-2008
+Initial implementation sketch of :Sppat and :Vsppat commands. 
+
+---	13-Jul-2005
+Initial implementation sketch of :Sproot command. 
+
+==============================================================================
+Copyright: (C) 2009 by Ingo Karkat
+The VIM LICENSE applies to this script; see|copyright|. 
+
+Maintainer:	Ingo Karkat <ingo@karkat.de>
+==============================================================================
+ vim:tw=78:ts=8:ft=help:norl:
