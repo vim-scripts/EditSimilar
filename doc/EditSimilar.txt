@@ -74,7 +74,15 @@ harder to type.
 			    :Esubstitute test=prod test=production
 			    /etc/production/superapp/prod001.cfg
 <
-			Add [!] to create a new file when the substituted file
+			The {replacement} can include the usual file wildcards
+			(?, *, cp.|file-pattern|) to save typing; however, the
+			file-pattern must resolve to exactly one existing
+			filespec, as the underlying ex commands can only open
+			one single file. >
+			    /etc/test/superapp/test001.cfg
+			    :Esubstitute test=p* test=p*
+			    /etc/production/superapp/prod001.cfg
+<			Add [!] to create a new file when the substituted file
 			does not exist. 
 							     *:FileSubstitute*
 :FileSubstitute {text}={replacement} [{text}={replacement} [...]] 
@@ -168,6 +176,12 @@ This is an enhanced version of the built-in: >
 			    :Eroot .
 			    myfile
 <
+			The {extension} can include the usual file wildcards
+			(?, *, cp.|file-pattern|) to save typing; however, the
+			file-pattern must resolve to exactly one existing
+			file, as the underlying ex commands can only open one
+			single file. 
+
 			Add [!] to create a new file when the substituted file
 			does not exist. 
 
@@ -197,6 +211,8 @@ Pattern: Open all files matching the pattern in split windows, similar to how
 			Open all files matching {file-pattern} in split windows.
 			If one of the files is already open, no second split is
 			generated. 
+			The {file-pattern} can include the usual file wildcards
+			(?, *, cp.|file-pattern|). 
 			Makes all windows the same size if more than one has
 			been opened.  
 
@@ -235,6 +251,10 @@ TODO							    EditSimilar-todo
 
 ==============================================================================
 HISTORY							 *EditSimilar-history*
+
+1.10	23-Feb-2009
+ENH: {replacement} in :EditSubstitute and {extension} in :EditRoot can now
+contain file wildcards to save typing. 
 
 1.00	18-Feb-2009
 First published version. 

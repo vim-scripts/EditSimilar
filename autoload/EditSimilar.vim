@@ -9,6 +9,8 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS 
+"   1.10.006	23-Feb-2009	ENH: s:Open() now has additional a:isFilePattern
+"				argument and is able to resolve file wildcards. 
 "   1.00.005	18-Feb-2009	Reviewed for publication. 
 "	004	04-Feb-2009	Now reducing the filespec to shortest possible
 "				(:~:.) before executing opencmd. This avoids
@@ -29,19 +31,59 @@ function! s:ErrorMsg( text )
     echohl None
 endfunction 
 
-function! s:Open( opencmd, isCreateNew, originalFilespec, replacementFilespec, createNewNotAllowedMsg )
-    if a:replacementFilespec ==# a:originalFilespec
+function! s:Open( opencmd, isCreateNew, isFilePattern, originalFilespec, replacementFilespec, createNewNotAllowedMsg )
+"*******************************************************************************
+"* PURPOSE:
+"   Open a substituted filespec via the a:opencmd ex command. 
+"* ASSUMPTIONS / PRECONDITIONS:
+"   None. 
+"* EFFECTS / POSTCONDITIONS:
+"   None. 
+"* INPUTS:
+"   a:opencmd	Ex command to open the file (e.g. 'edit', 'split', etc.) 
+"   a:isCreateNew   Flag whether a non-existing filespec will be opened, thereby
+"		    creating a new file. 
+"   a:isFilePattern Flag whether file wildcards will be resolved (if the
+"		    filespec itself doesn't exist. If the resolution of
+"		    wildcards yields a single (existing) file, it is opened.
+"		    Multiple candidates will result in an error message. 
+"   a:originalFilespec	Original, unmodified filespec; is used for check that
+"			something actually was substituted. 
+"   a:replacementFilespec   Filespec to be opened. May contain wildcards. 
+"   a:createNewNotAllowedMsg	(Optional) user message to be appended to the
+"				"Substituted file does not exist" error message;
+"				typically contains the (user-readable)
+"				representation of a:replacementFilespec. 
+"* RETURN VALUES: 
+"   None. 
+"*******************************************************************************
+    let l:filespecToOpen = a:replacementFilespec
+
+    if l:filespecToOpen ==# a:originalFilespec
 	call s:ErrorMsg('Nothing substituted')
 	return
     endif
-    if ! a:isCreateNew && ! filereadable(a:replacementFilespec) && ! isdirectory(a:replacementFilespec)
-	call s:ErrorMsg('Substituted file does not exist (add ! to create)' . (empty(a:createNewNotAllowedMsg) ? '' : ': ' . a:createNewNotAllowedMsg))
-	return
+
+    if ! filereadable(l:filespecToOpen) && ! isdirectory(l:filespecToOpen)
+	let l:files = split(glob(l:filespecToOpen), "\n")
+	if len(l:files) > 1
+	    call s:ErrorMsg('Too many file names')
+	    return
+	elseif len(l:files) == 1
+	    let l:filespecToOpen = l:files[0]
+	    if l:filespecToOpen ==# a:originalFilespec
+		call s:ErrorMsg('Nothing substituted')
+		return
+	    endif
+	elseif ! a:isCreateNew
+	    call s:ErrorMsg('Substituted file does not exist (add ! to create)' . (empty(a:createNewNotAllowedMsg) ? '' : ': ' . a:createNewNotAllowedMsg))
+	    return
+	endif
     endif
 
-"****D echomsg '****' . a:opencmd . ' ' . a:replacementFilespec | return
+"****D echomsg '****' . a:opencmd . ' ' . l:filespecToOpen | return
     try
-	execute a:opencmd escapings#fnameescape(fnamemodify(a:replacementFilespec, ':~:.'))
+	execute a:opencmd escapings#fnameescape(fnamemodify(l:filespecToOpen, ':~:.'))
     catch /^Vim\%((\a\+)\)\=:E37/	" E37: No write since last change (add ! to override)
 	" The "(add ! to override)" is wrong here, we use the ! for another
 	" purpose, so filter it away. 
@@ -88,7 +130,7 @@ function! EditSimilar#OpenSubstitute( opencmd, isCreateNew, filespec, ... )
 	    let l:replacementFilespec = l:replacementPathspec . l:replacementFilename
 	    let l:replacementMsg = fnamemodify(l:replacementFilespec, ':~:.')
 	endif
-	call s:Open(a:opencmd, a:isCreateNew, l:originalFilespec, l:replacementFilespec, l:replacementMsg)
+	call s:Open(a:opencmd, a:isCreateNew, 1, l:originalFilespec, l:replacementFilespec, l:replacementMsg)
     catch /^EditSimilar:/
 	call s:ErrorMsg(substitute(v:exception, '^EditSimilar:\s*', '', ''))
     endtry
@@ -128,7 +170,7 @@ function! EditSimilar#OpenOffset( opencmd, isCreateNew, filespec, difference, di
 	endwhile
     endif
 
-    call s:Open(a:opencmd, a:isCreateNew, a:filespec, l:replacement, l:replacementMsg . ' (from #' . l:originalNumber . ')')
+    call s:Open(a:opencmd, a:isCreateNew, 0, a:filespec, l:replacement, l:replacementMsg . ' (from #' . l:originalNumber . ')')
 endfunction
 
 " Root (i.e. file extension) commands. 
@@ -140,7 +182,7 @@ function! EditSimilar#OpenRoot( opencmd, isCreateNew, filespec, newExtension )
     let l:rootRemovalNum = (strlen(l:dots) > 1 ? strlen(l:dots) : 1)
 
     let l:newFilespec = fnamemodify(a:filespec, repeat(':r', l:rootRemovalNum)) . (! empty(l:newExtension) ? '.' . l:newExtension : '')
-    call s:Open( a:opencmd, a:isCreateNew, a:filespec, l:newFilespec, fnamemodify(l:newFilespec, ':t'))
+    call s:Open( a:opencmd, a:isCreateNew, 1, a:filespec, l:newFilespec, fnamemodify(l:newFilespec, ':t'))
 endfunction
 
 " Pattern commands. 
