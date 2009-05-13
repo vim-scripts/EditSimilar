@@ -6,9 +6,6 @@ description			|EditSimilar-description|
 usage	    			|EditSimilar-usage|
 installation   			|EditSimilar-installation|
 configuration  			|EditSimilar-configuration|
-integration			|EditSimilar-integration|
-limitations			|EditSimilar-limitations|
-assumptions			|EditSimilar-assumptions|
 known problems			|EditSimilar-known-problems|
 todo				|EditSimilar-todo|
 history				|EditSimilar-history|
@@ -16,16 +13,16 @@ history				|EditSimilar-history|
 ==============================================================================
 DESCRIPTION					     *EditSimilar-description*
 
-Files edited in VIM often relate to one another; maybe they just differ in
+Files edited in Vim often relate to one another; maybe they just differ in
 file extensions, are numbered sequentially, or contain common patterns. One
 can use the built-in|cmdline-completion| or|filename-modifiers|like %:r to
 quickly edit a similar file, or even use special plugins, e.g. to alternate
 between source and header files (vimscript #31). 
 
-This script provides custom versions of the|:edit|,|:split|,|:vsplit|,|:file|,
-|:write| and|:saveas|commands which facilitate quick and simple editing of
-similarly named files. To quickly edit another file based on the current file,
-one can: 
+This script provides custom versions of
+the|:edit|,|:view|,|:split|,|:vsplit|,|:sview|,|:file|,|:write| and|:saveas|
+commands which facilitate quick and simple editing of similarly named files.
+To quickly edit another file based on the current file, one can: 
 - substitute {old} with {new}			   |EditSimilar-substitutions|
 - go to previous/next numbered file or			  |EditSimilar-offset|
   add any offset to the number
@@ -37,32 +34,42 @@ To open a set of similar files, it is possible to:
 ==============================================================================
 USAGE							   *EditSimilar-usage*
 						   *EditSimilar-substitutions*
-Substitutions: Change all literal occurrences via text=replacement in the
+Substitutions: Change all occurrences via {text}={replacement} in the
 currently edited file (modeled after the Korn shell's "cd {old} {new}"
 command). This can also be achieved with the built-in|filename-modifiers|: >
     :edit %:gs?pattern?replacement?
 but the syntax is difficult to memorize (it's subtly different from|:s|) and
-harder to type. 
+harder to type (because one has to use regular expressions instead of the
+simpler file wildcards). 
 
 						   *:Esubst* *:EditSubstitute*
 :EditSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
 :Esubst[!] ...
+						   *:Vsubst* *:ViewSubstitute*
+:ViewSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
+:Vsubst[!] ...
 						   *Spsubst* *SplitSubstitute*
 :SplitSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
 :Spsubst[!] ...
 					       *:Vspsubst* *:VsplitSubstitute*
 :VsplitSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
 :Vspsubst[!] ...
+						   *Svsubst* *SviewSubstitute*
+:SviewSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
+:Svsubst[!] ...
 			Replaces all literal occurrences of {text} in the
 			currently edited file with {replacement}, and opens the
 			resulting file. If all substitutions can be made on the
 			filename, the pathspec is left alone (so you don't get
 			any false replacements on a long pathspec). Otherwise,
 			the substitutions that weren't applicable to the
-			filename are done to the full absolute pathspec. 
+			filename are done to the full absolute pathspec.
+			Finally, substitutions spanning both pathspec and
+			filename are made. 
 
-			This way, you can substitute an the entire path by
-			specifying the same substitution twice: >
+			By taking advantage of these substitution scopes, you
+			can substitute occurrences in both path and filename
+			by specifying the same substitution twice: >
 			    /etc/test/superapp/test001.cfg
 			    :Esubstitute test=prod
 			    /etc/test/superapp/prod001.cfg
@@ -73,15 +80,21 @@ harder to type.
 			    /etc/test/superapp/test001.cfg
 			    :Esubstitute test=prod test=production
 			    /etc/production/superapp/prod001.cfg
-<
-			The {replacement} can include the usual file wildcards
-			(?, *, cp.|file-pattern|) to save typing; however, the
-			file-pattern must resolve to exactly one existing
-			filespec, as the underlying ex commands can only open
-			one single file. >
+<			Or across the entire filespec: >
+			    /etc/test/superapp/test001.cfg
+			    :Esubstitute superapp/test=normalapp/prod
+			    /etc/test/normalapp/prod001.cfg
+
+<			Both {text} and {replacement} can include the usual
+			file wildcards (?, *, ** and [...], cp.|file-pattern|)
+			to save typing; however, the file-pattern must resolve
+			to exactly one filespec, as the underlying ex commands
+			can only open a single file. >
 			    /etc/test/superapp/test001.cfg
 			    :Esubstitute test=p* test=p*
 			    /etc/production/superapp/prod001.cfg
+			    :Esubstitute **=/tmp [01]=X
+			    /tmp/prodXXX.cfg
 <			Add [!] to create a new file when the substituted file
 			does not exist. 
 							     *:FileSubstitute*
@@ -90,9 +103,9 @@ harder to type.
 :WriteSubstitute[!] {text}={replacement} [{text}={replacement} [...]] 
 							     *:SaveSubstitute*
 :SaveSubstitute[!] {text}={replacement} [{text}={replacement} [...]] 
-			Replaces all literal occurrences of {text} in the
-			currently edited file with {replacement}, and sets /
-			writes the resulting file. 
+			Replaces all occurrences of {text} in the currently
+			edited file with {replacement}, and sets / writes the
+			resulting file. Wildcards can be used here, too. 
 			The [!] is needed to overwrite an existing file.
 
 
@@ -105,6 +118,11 @@ file.
 :[N]Enext[!] [N]
 :[N]EditPrevious[!] [N]
 :[N]Eprev[!] [N]
+				 *:Vnext* *:ViewNext* *:Vprev* *:ViewPrevious*
+:[N]ViewNext[!] [N]
+:[N]Vnext[!] [N]
+:[N]ViewPrevious[!] [N]
+:[N]Vprev[!] [N]
 			     *:Spnext* *:SplitNext* *:Spprev* *:SplitPrevious*
 :[N]SplitNext[!] [N]
 :[N]Spnext[!] [N]
@@ -115,6 +133,11 @@ file.
 :[N]Vspnext[!] [N]
 :[N]VsplitPrevious[!] [N]
 :[N]Vspprev[!] [N]
+			     *:Svnext* *:SviewNext* *:Svprev* *:SviewPrevious*
+:[N]SviewNext[!] [N]
+:[N]Svnext[!] [N]
+:[N]SviewPrevious[!] [N]
+:[N]Svprev[!] [N]
 			Increases the last number found inside the full absolute
 			filespec of the currently edited file by [N]. (A fixed
 			number width via padding with leading zeros is maintained.) 
@@ -158,12 +181,18 @@ This is an enhanced version of the built-in: >
 <							  *:Eroot* *:EditRoot*
 :EditRoot[!] {extension}
 :Eroot[!] ...
+							  *:Vroot* *:ViewRoot*
+:ViewRoot[!] {extension}
+:Vroot[!] ...
 							*:Sproot* *:SplitRoot*
 :SplitRoot[!] {extension}
 :Sproot[!] ...
 						      *:Vsproot* *:VsplitRoot*
 :VsplitRoot[!] {extension}
 :Vsproot[!] ...
+							*:Svroot* *:SviewRoot*
+:SviewRoot[!] {extension}
+:Svroot[!] ...
 			Switches the current file's extension: 
 			Edits a file with the current file's path and name, but
 			replaces the file extension with the passed one. The
@@ -208,6 +237,9 @@ Pattern: Open all files matching the pattern in split windows, similar to how
 						    *:Vsppat* *:VsplitPattern*
 :VsplitPattern {file-pattern}
 :Vsppat ...
+						      *:Svpat* *:SviewPattern*
+:SviewPattern {file-pattern}
+:Svpat ...
 			Open all files matching {file-pattern} in split windows.
 			If one of the files is already open, no second split is
 			generated. 
@@ -220,8 +252,8 @@ Pattern: Open all files matching the pattern in split windows, similar to how
 INSTALLATION					    *EditSimilar-installation*
 
 This script is packaged as a|vimball|. If you have the "gunzip" decompressor
-in your PATH, simply edit the *.vba.gz package in VIM; otherwise, decompress
-the archive first, e.g. using WinZip. Inside VIM, install by sourcing the
+in your PATH, simply edit the *.vba.gz package in Vim; otherwise, decompress
+the archive first, e.g. using WinZip. Inside Vim, install by sourcing the
 vimball or via the|:UseVimball|command. >
     vim EditSimilar.vba.gz
     :so %
@@ -229,28 +261,30 @@ To uninstall, use the|:RmVimball|command.
 
 DEPENDENCIES					    *EditSimilar-dependencies*
 
-- Requires VIM 7.0 or higher. 
+- Requires Vim 7.0 or higher. 
 
 ==============================================================================
-CONFIGURATION					   EditSimilar-configuration
+CONFIGURATION					   *EditSimilar-configuration*
 
 ==============================================================================
-INTEGRATION					     EditSimilar-integration
+KNOWN PROBLEMS					  *EditSimilar-known-problems*
 
-==============================================================================
-LIMITATIONS					     EditSimilar-limitations
-
-==============================================================================
-ASSUMPTIONS					     EditSimilar-assumptions
-
-==============================================================================
-KNOWN PROBLEMS					  EditSimilar-known-problems
-
-==============================================================================
-TODO							    EditSimilar-todo
+TODO							    *EditSimilar-todo*
 
 ==============================================================================
 HISTORY							 *EditSimilar-history*
+
+1.12	13-May-2009
+- ENH: {text} in :EditSubstitute can now also contain file wildcards (?, *, **
+  and [...]) to save typing. 
+- ENH: On Windows, {text} in :EditSubstitute can now also use forward slashes
+  as path separators (as an alternative to the usual backslashes). 
+- ENH: Supporting substitutions spanning both pathspec and filename by finally
+  applying failed replacements of multi-path elements to the entire filespec. 
+
+1.11	11-May-2009
+Added ":ViewSimilar" and ":SviewSimilar" commands to open similar files in
+read-only mode. 
 
 1.10	23-Feb-2009
 ENH: {replacement} in :EditSubstitute and {extension} in :EditRoot can now
