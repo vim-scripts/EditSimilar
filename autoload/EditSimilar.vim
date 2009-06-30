@@ -1,7 +1,7 @@
 " EditSimilar.vim: Commands to edit files with a similar filename. 
 "
 " DEPENDENCIES:
-"   - Requires escapings.vim autoload script. 
+"   - escapings.vim autoload script. 
 "
 " Copyright: (C) 2009 by Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'. 
@@ -9,6 +9,15 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS 
+"   1.13.011	27-Jun-2009	The skip to the next number implements a more
+"				efficient search algorithm that checks whole
+"				number ranges (via glob('...[0-9]')) and skips
+"				over the range if no matches occur in that
+"				block. This greatly speeds up :Enext / Eprev
+"				over large gaps and after the last / before the
+"				first existing number. 
+"   1.13.010	26-Jun-2009	:EditNext / :EditPrevious without the optional
+"				[count] now skip over gaps in numbering. 
 "   1.12.009	13-May-2009	ENH: Supporting substitutions spanning both
 "				pathspec and filename by finally applying failed
 "				multi-path elements replacements to the entire
@@ -263,14 +272,59 @@ function! EditSimilar#OpenSubstitute( opencmd, isCreateNew, filespec, ... )
 endfunction
 
 " Next / Previous commands. 
+function! s:NumberString( number, digitNum )
+    return printf('%0' . a:digitNum . 'd', a:number)
+endfunction
 let s:digitPattern = '\d\+\ze\D*$'
 function! s:Offset( text, offset, minimum )
     let l:currentNumber = matchstr(a:text, s:digitPattern)
-    let l:nextNumber = max([str2nr(l:currentNumber, 10) + a:offset, a:minimum])
-    let l:nextNumberString = printf('%0' . strlen(l:currentNumber) . 'd', l:nextNumber)
-    return [l:nextNumberString, substitute(a:text, s:digitPattern, l:nextNumberString, '')]
+    let l:nextNumber = max([str2nr(l:currentNumber) + a:offset, a:minimum])
+    let l:nextNumberString = s:NumberString(l:nextNumber, strlen(l:currentNumber))
+    return [l:nextNumber, l:nextNumberString, substitute(a:text, s:digitPattern, l:nextNumberString, '')]
+endfunction
+function! s:CheckNextDigitBlock( filespec, numberString, isDescending, ... )
+    let l:numberBlockRegexp = (a:isDescending ? '9' : '0') . (a:0 ? '\{' . a:1 . '}' : '\+') . '$'
+    if a:numberString !~# l:numberBlockRegexp
+	return 1
+    endif
+
+    " The (ascending) number is divisible by 10. Mass-check the next / last 10,
+    " 100, 1000, ... number range for existing files via a file glob. If no
+    " files exist in that range, the search can fast-forward across the range;
+    " otherwise, the search must continue sequentially (until the next block). 
+    let l:numberBlock = matchstr(a:numberString, l:numberBlockRegexp)
+    let l:numberBlockDigitNum = strlen(l:numberBlock)
+    let l:numberFilePattern = substitute(a:numberString, l:numberBlockRegexp, repeat('[0-9]', l:numberBlockDigitNum), '')
+    let l:filePattern = substitute(a:filespec, s:digitPattern, l:numberFilePattern, '')
+"****D echomsg '****' l:filePattern
+    let l:files = glob(l:filePattern)
+    if empty(l:files)
+	" The glob resulted in no files; the entire block can be skipped. 
+	let l:block = 1
+	for l:i in range(l:numberBlockDigitNum)
+	    let l:block = l:block * 10
+	endfor
+	return l:block
+    else
+	" The glob found at least one file; the block cannot be skipped. 
+	if l:numberBlockDigitNum > 1
+	    " The block consisted of more than one decimal digit, so we can
+	    " retry with a smaller block containing one digit less (i.e.
+	    " one-tenth the number range). 
+	    return s:CheckNextDigitBlock(a:filespec, a:numberString, a:isDescending, l:numberBlockDigitNum - 1)
+	else
+	    " The block consisted of just one digit, and there is a match in
+	    " there, so it must be searched sequentially. 
+	    return 1
+	endif
+    endif
 endfunction
 function! EditSimilar#OpenOffset( opencmd, isCreateNew, filespec, difference, direction )
+    " A passed difference of 0 means that no [count] was specified and thus
+    " skipping over missing numbers is enabled. 
+    let l:difference = max([a:difference, 1])
+    let l:isSkipOverMissingNumbers = (a:difference == 0)
+
     let l:originalNumber = matchstr(a:filespec, s:digitPattern)
     if empty(l:originalNumber)
 	call s:ErrorMsg('No number in filespec')
@@ -278,21 +332,36 @@ function! EditSimilar#OpenOffset( opencmd, isCreateNew, filespec, difference, di
     endif
 
     if a:isCreateNew
-	let [l:replacementNumberString, l:replacement] = s:Offset(a:filespec, a:direction * a:difference, 0)
-	if str2nr(l:replacementNumberString, 10) == 0 && a:direction == -1 && a:difference > 1 && ! filereadable(l:replacement)
-	    let [l:replacementNumberString, l:replacement] = s:Offset(a:filespec, a:direction * a:difference, 1)
+	let [l:replacementNumber, l:replacementNumberString, l:replacement] = s:Offset(a:filespec, a:direction * l:difference, 0)
+	if l:replacementNumber == 0 && a:direction == -1 && l:difference > 1 && ! filereadable(l:replacement)
+	    let [l:replacementNumber, l:replacementNumberString, l:replacement] = s:Offset(a:filespec, a:direction * l:difference, 1)
 	endif
 	let l:replacementMsg = '#' . l:replacementNumberString
+    elseif l:isSkipOverMissingNumbers
+	let l:replacementMsg = ''
+
+	" The maximum number that is searched for can have one more digit than
+	" the next number. 
+	let l:numberLen = strlen(s:Offset(a:filespec, a:difference, 0)[1]) + 1
+	let l:differenceMax = str2nr(repeat(9, l:numberLen))
+
+	while l:difference < l:differenceMax
+	    let [l:replacementNumber, l:replacementNumberString, l:replacement] = s:Offset(a:filespec, a:direction * l:difference, 0)
+	    if empty(l:replacementMsg) | let l:replacementMsg = '#' . l:replacementNumberString | endif
+	    if filereadable(l:replacement) || l:replacementNumber == 0
+		break
+	    endif
+	    let l:difference += s:CheckNextDigitBlock(a:filespec, l:replacementNumberString, (a:direction == -1))
+	endwhile
     else
-	let l:difference = a:difference
 	let l:replacementMsg = ''
 	while l:difference > 0
-	    let [l:replacementNumberString, l:replacement] = s:Offset(a:filespec, a:direction * l:difference, 0)
+	    let [l:replacementNumber, l:replacementNumberString, l:replacement] = s:Offset(a:filespec, a:direction * l:difference, 0)
 	    if empty(l:replacementMsg) | let l:replacementMsg = '#' . l:replacementNumberString | endif
 	    if filereadable(l:replacement)
 		break
 	    endif
-	    let l:difference -= 1
+	    let l:difference -= s:CheckNextDigitBlock(a:filespec, l:replacementNumberString, 1)
 	endwhile
     endif
 

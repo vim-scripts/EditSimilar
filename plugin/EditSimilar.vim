@@ -9,6 +9,10 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS 
+"   1.13.007	26-Jun-2009	:EditNext / :EditPrevious without the optional
+"				[count] now skip over gaps in numbering. Changed
+"				the default [count] to 0 to be able to detect a
+"				given count. 
 "   1.11.006	11-May-2009	Added commands to open similar files in
 "				read-only mode, a la :ViewSubstitute,
 "				:SviewSubstitute. 
@@ -51,33 +55,33 @@ command! -bar -bang -nargs=+ SaveSubstitute	call EditSimilar#OpenSubstitute('sav
 
 
 " Next / Previous commands. 
-command! -bar -bang -count=1 EditNext		call EditSimilar#OpenOffset('edit',   <bang>0, expand('%:p'), <count>,  1)
-command! -bar -bang -count=1 Enext		call EditSimilar#OpenOffset('edit',   <bang>0, expand('%:p'), <count>,  1)
-command! -bar -bang -count=1 EditPrevious	call EditSimilar#OpenOffset('edit',   <bang>0, expand('%:p'), <count>, -1)
-command! -bar -bang -count=1 Eprev		call EditSimilar#OpenOffset('edit',   <bang>0, expand('%:p'), <count>, -1)
-command! -bar -bang -count=1 ViewNext		call EditSimilar#OpenOffset('view',   <bang>0, expand('%:p'), <count>,  1)
-command! -bar -bang -count=1 Vnext		call EditSimilar#OpenOffset('view',   <bang>0, expand('%:p'), <count>,  1)
-command! -bar -bang -count=1 ViewPrevious	call EditSimilar#OpenOffset('view',   <bang>0, expand('%:p'), <count>, -1)
-command! -bar -bang -count=1 Vprev		call EditSimilar#OpenOffset('view',   <bang>0, expand('%:p'), <count>, -1)
-command! -bar -bang -count=1 SplitNext		call EditSimilar#OpenOffset('split',  <bang>0, expand('%:p'), <count>,  1)
-command! -bar -bang -count=1 Spnext		call EditSimilar#OpenOffset('split',  <bang>0, expand('%:p'), <count>,  1)
-command! -bar -bang -count=1 SplitPrevious	call EditSimilar#OpenOffset('split',  <bang>0, expand('%:p'), <count>, -1)
-command! -bar -bang -count=1 Spprev		call EditSimilar#OpenOffset('split',  <bang>0, expand('%:p'), <count>, -1)
-command! -bar -bang -count=1 VsplitNext		call EditSimilar#OpenOffset('vsplit', <bang>0, expand('%:p'), <count>,  1)
-command! -bar -bang -count=1 Vspnext		call EditSimilar#OpenOffset('vsplit', <bang>0, expand('%:p'), <count>,  1)
-command! -bar -bang -count=1 VsplitPrevious	call EditSimilar#OpenOffset('vsplit', <bang>0, expand('%:p'), <count>, -1)
-command! -bar -bang -count=1 Vspprev	    	call EditSimilar#OpenOffset('vsplit', <bang>0, expand('%:p'), <count>, -1)
-command! -bar -bang -count=1 SviewNext		call EditSimilar#OpenOffset('sview',  <bang>0, expand('%:p'), <count>,  1)
-command! -bar -bang -count=1 Svnext		call EditSimilar#OpenOffset('sview',  <bang>0, expand('%:p'), <count>,  1)
-command! -bar -bang -count=1 SviewPrevious	call EditSimilar#OpenOffset('sview',  <bang>0, expand('%:p'), <count>, -1)
-command! -bar -bang -count=1 Svprev		call EditSimilar#OpenOffset('sview',  <bang>0, expand('%:p'), <count>, -1)
+command! -bar -bang -count=0 EditNext		call EditSimilar#OpenOffset('edit',   <bang>0, expand('%:p'), <count>,  1)
+command! -bar -bang -count=0 Enext		call EditSimilar#OpenOffset('edit',   <bang>0, expand('%:p'), <count>,  1)
+command! -bar -bang -count=0 EditPrevious	call EditSimilar#OpenOffset('edit',   <bang>0, expand('%:p'), <count>, -1)
+command! -bar -bang -count=0 Eprev		call EditSimilar#OpenOffset('edit',   <bang>0, expand('%:p'), <count>, -1)
+command! -bar -bang -count=0 ViewNext		call EditSimilar#OpenOffset('view',   <bang>0, expand('%:p'), <count>,  1)
+command! -bar -bang -count=0 Vnext		call EditSimilar#OpenOffset('view',   <bang>0, expand('%:p'), <count>,  1)
+command! -bar -bang -count=0 ViewPrevious	call EditSimilar#OpenOffset('view',   <bang>0, expand('%:p'), <count>, -1)
+command! -bar -bang -count=0 Vprev		call EditSimilar#OpenOffset('view',   <bang>0, expand('%:p'), <count>, -1)
+command! -bar -bang -count=0 SplitNext		call EditSimilar#OpenOffset('split',  <bang>0, expand('%:p'), <count>,  1)
+command! -bar -bang -count=0 Spnext		call EditSimilar#OpenOffset('split',  <bang>0, expand('%:p'), <count>,  1)
+command! -bar -bang -count=0 SplitPrevious	call EditSimilar#OpenOffset('split',  <bang>0, expand('%:p'), <count>, -1)
+command! -bar -bang -count=0 Spprev		call EditSimilar#OpenOffset('split',  <bang>0, expand('%:p'), <count>, -1)
+command! -bar -bang -count=0 VsplitNext		call EditSimilar#OpenOffset('vsplit', <bang>0, expand('%:p'), <count>,  1)
+command! -bar -bang -count=0 Vspnext		call EditSimilar#OpenOffset('vsplit', <bang>0, expand('%:p'), <count>,  1)
+command! -bar -bang -count=0 VsplitPrevious	call EditSimilar#OpenOffset('vsplit', <bang>0, expand('%:p'), <count>, -1)
+command! -bar -bang -count=0 Vspprev	    	call EditSimilar#OpenOffset('vsplit', <bang>0, expand('%:p'), <count>, -1)
+command! -bar -bang -count=0 SviewNext		call EditSimilar#OpenOffset('sview',  <bang>0, expand('%:p'), <count>,  1)
+command! -bar -bang -count=0 Svnext		call EditSimilar#OpenOffset('sview',  <bang>0, expand('%:p'), <count>,  1)
+command! -bar -bang -count=0 SviewPrevious	call EditSimilar#OpenOffset('sview',  <bang>0, expand('%:p'), <count>, -1)
+command! -bar -bang -count=0 Svprev		call EditSimilar#OpenOffset('sview',  <bang>0, expand('%:p'), <count>, -1)
 
-command! -bar	    -count=1 FileNext		call EditSimilar#OpenOffset('file',         1, expand('%:p'), <count>,  1)
-command! -bar	    -count=1 FilePrevious	call EditSimilar#OpenOffset('file',         1, expand('%:p'), <count>, -1)
-command! -bar -bang -count=1 WriteNext		call EditSimilar#OpenOffset('write<bang>',  1, expand('%:p'), <count>,  1)
-command! -bar -bang -count=1 WritePrevious	call EditSimilar#OpenOffset('write<bang>',  1, expand('%:p'), <count>, -1)
-command! -bar -bang -count=1 SaveNext		call EditSimilar#OpenOffset('saveas<bang>', 1, expand('%:p'), <count>,  1)
-command! -bar -bang -count=1 SavePrevious	call EditSimilar#OpenOffset('saveas<bang>', 1, expand('%:p'), <count>, -1)
+command! -bar	    -count=0 FileNext		call EditSimilar#OpenOffset('file',         1, expand('%:p'), <count>,  1)
+command! -bar	    -count=0 FilePrevious	call EditSimilar#OpenOffset('file',         1, expand('%:p'), <count>, -1)
+command! -bar -bang -count=0 WriteNext		call EditSimilar#OpenOffset('write<bang>',  1, expand('%:p'), <count>,  1)
+command! -bar -bang -count=0 WritePrevious	call EditSimilar#OpenOffset('write<bang>',  1, expand('%:p'), <count>, -1)
+command! -bar -bang -count=0 SaveNext		call EditSimilar#OpenOffset('saveas<bang>', 1, expand('%:p'), <count>,  1)
+command! -bar -bang -count=0 SavePrevious	call EditSimilar#OpenOffset('saveas<bang>', 1, expand('%:p'), <count>, -1)
 
 
 " Root (i.e. file extension) commands. 
