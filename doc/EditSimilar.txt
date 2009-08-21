@@ -281,6 +281,13 @@ TODO							    *EditSimilar-todo*
 
 ==============================================================================
 HISTORY							 *EditSimilar-history*
+1.14	21-Aug-2009
+- BF: :[N]EditPrevious with supplied [N] would skip over existing smaller
+  number file and would claim that no substituted file existed. 
+- BF: :[N]EditPrevious with supplied large [N] together with a low original
+  number hogs the CPU because the loop iterates over the entire number range
+  where the resulting offset would be negative.
+
 1.13	27-Jun-2009
 ENH: :EditNext / :EditPrevious without the optional [count] now skip over gaps
 in numbering. 
