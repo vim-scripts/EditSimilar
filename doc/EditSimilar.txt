@@ -111,8 +111,8 @@ simpler file wildcards).
 
 ------------------------------------------------------------------------------
 							  *EditSimilar-offset*
-Next / Previous: Add an offset to the last number in the currently edited
-file. 
+Next / Previous: Add an offset to the last (decimal) number in the currently
+edited file. 
 				 *:Enext* *:EditNext* *:Eprev* *:EditPrevious*
 :[N]EditNext[!] [N]
 :[N]Enext[!] [N]
@@ -281,6 +281,11 @@ TODO							    *EditSimilar-todo*
 
 ==============================================================================
 HISTORY							 *EditSimilar-history*
+
+1.15	09-Sep-2009
+Offset commands (:EditNext et al.) now check that the digit pattern does not
+accidentally match inside a hexadecimal number (which are unsupported). 
+
 1.14	21-Aug-2009
 - BF: :[N]EditPrevious with supplied [N] would skip over existing smaller
   number file and would claim that no substituted file existed. 

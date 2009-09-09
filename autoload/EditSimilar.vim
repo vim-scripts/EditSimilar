@@ -9,6 +9,11 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS 
+"   1.15.013	09-Sep-2009	Now also using EditSimilar#CanApplyOffset()
+"				inside EditSimilar#OpenOffset(). The function
+"				checks that the digit pattern does not
+"				accidentally match inside a hexadecimal number
+"				(which are unsupported). 
 "   1.14.012	21-Aug-2009	BF: :[N]Eprev with supplied [N] would skip over
 "				existing smaller number file and would claim
 "				that no substituted file existed. Must clear
@@ -288,6 +293,16 @@ function! s:NumberString( number, digitNum )
     return printf('%0' . a:digitNum . 'd', a:number)
 endfunction
 let s:digitPattern = '\d\+\ze\D*$'
+let s:noHexadecimalPattern = '\%(^\|[^0-9a-zA-Z]\)\%(0x\)\?\d*[a-fA-F]\x*\D*$'
+function! EditSimilar#CanApplyOffset( text )
+    " To ensure that s:digitPattern does not match inside a hexadecimal number
+    " (which are unsupported), we try to match with hexadecimal numbers, too.
+    " Hexadecimal numbers could appear in the same (last) position as the
+    " decimal digits, and must start as a new word, optionally prefixed with
+    " '0x'. This is to ensure that text such as "inside123" does not match
+    " "de123" as a hexadecimal number. 
+    return a:text =~# s:digitPattern && a:text !~# s:noHexadecimalPattern
+endfunction
 function! s:Offset( text, offset, minimum )
     let l:originalNumber = matchstr(a:text, s:digitPattern)
     let l:nextNumber = max([str2nr(l:originalNumber) + a:offset, a:minimum])
@@ -337,11 +352,12 @@ function! EditSimilar#OpenOffset( opencmd, isCreateNew, filespec, difference, di
     let l:difference = max([a:difference, 1])
     let l:isSkipOverMissingNumbers = (a:difference == 0)
 
-    let l:originalNumberString = matchstr(a:filespec, s:digitPattern)
-    if empty(l:originalNumberString)
+    if ! EditSimilar#CanApplyOffset(a:filespec)
 	call s:ErrorMsg('No number in filespec')
 	return
     endif
+    let l:originalNumberString = matchstr(a:filespec, s:digitPattern)
+    if empty(l:originalNumberString) | throw 'ASSERT: Extracted number.' | endif
 
     if a:isCreateNew
 	let [l:replacementNumber, l:replacementNumberString, l:replacement] = s:Offset(a:filespec, a:direction * l:difference, 0)
