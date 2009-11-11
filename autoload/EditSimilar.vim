@@ -9,6 +9,13 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS 
+"   1.16.014	11-Nov-2009	BUG: Next / previous commands interpreted files
+"				such as 'C406' as hexadecimal. Tweaked
+"				s:hexadecimalPattern to have hexadecimals start
+"				with a decimal, or have the "0x" prefix uniquely
+"				identify (even pure decimal) numbers as
+"				hexadecimal. Thanks to Andy Wokula for sending a
+"				patch. 
 "   1.15.013	09-Sep-2009	Now also using EditSimilar#CanApplyOffset()
 "				inside EditSimilar#OpenOffset(). The function
 "				checks that the digit pattern does not
@@ -293,15 +300,18 @@ function! s:NumberString( number, digitNum )
     return printf('%0' . a:digitNum . 'd', a:number)
 endfunction
 let s:digitPattern = '\d\+\ze\D*$'
-let s:noHexadecimalPattern = '\%(^\|[^0-9a-zA-Z]\)\%(0x\)\?\d*[a-fA-F]\x*\D*$'
+" Hexadecimal numbers could appear in the same (last) position as the
+" decimal digits, and must start as a new word. (This is to ensure that text
+" such as "inside123" does not match "de123" as a hexadecimal number.)
+" Either they are prefixed with '0x' (this uniquely identifies even
+" decimal-only numbers such as "0x1234" as hexadecimals) , or they start
+" with a decimal number. (To avoid common prefixes as in "E123" or "C406" to
+" be interpreted as hexadecimals.) 
+let s:hexadecimalPattern = '\%(^\|[^0-9a-zA-Z]\)\%(0x\x\+\|\d\+[a-fA-F]\x*\)\D*$'
 function! EditSimilar#CanApplyOffset( text )
     " To ensure that s:digitPattern does not match inside a hexadecimal number
     " (which are unsupported), we try to match with hexadecimal numbers, too.
-    " Hexadecimal numbers could appear in the same (last) position as the
-    " decimal digits, and must start as a new word, optionally prefixed with
-    " '0x'. This is to ensure that text such as "inside123" does not match
-    " "de123" as a hexadecimal number. 
-    return a:text =~# s:digitPattern && a:text !~# s:noHexadecimalPattern
+    return a:text =~# s:digitPattern && a:text !~# s:hexadecimalPattern
 endfunction
 function! s:Offset( text, offset, minimum )
     let l:originalNumber = matchstr(a:text, s:digitPattern)

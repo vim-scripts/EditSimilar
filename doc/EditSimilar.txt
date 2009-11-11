@@ -282,6 +282,10 @@ TODO							    *EditSimilar-todo*
 ==============================================================================
 HISTORY							 *EditSimilar-history*
 
+1.16	11-Nov-2009
+BUG: Next / previous commands interpreted files such as 'C406' as hexadecimal.
+Thanks to Andy Wokula for sending a patch. 
+
 1.15	09-Sep-2009
 Offset commands (:EditNext et al.) now check that the digit pattern does not
 accidentally match inside a hexadecimal number (which are unsupported). 
