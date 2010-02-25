@@ -3,12 +3,14 @@
 " DEPENDENCIES:
 "   - escapings.vim autoload script. 
 "
-" Copyright: (C) 2009 by Ingo Karkat
+" Copyright: (C) 2009-2010 by Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'. 
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS 
+"   1.17.015	25-Feb-2010	BUG: :999EditPrevious on 'file00' caused E121:
+"				Undefined variable: l:replacement. 
 "   1.16.014	11-Nov-2009	BUG: Next / previous commands interpreted files
 "				such as 'C406' as hexadecimal. Tweaked
 "				s:hexadecimalPattern to have hexadecimals start
@@ -369,6 +371,7 @@ function! EditSimilar#OpenOffset( opencmd, isCreateNew, filespec, difference, di
     let l:originalNumberString = matchstr(a:filespec, s:digitPattern)
     if empty(l:originalNumberString) | throw 'ASSERT: Extracted number.' | endif
 
+    let l:replacement = a:filespec
     if a:isCreateNew
 	let [l:replacementNumber, l:replacementNumberString, l:replacement] = s:Offset(a:filespec, a:direction * l:difference, 0)
 	if l:replacementNumber == 0 && a:direction == -1 && l:difference > 1 && ! filereadable(l:replacement)

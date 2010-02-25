@@ -282,6 +282,10 @@ TODO							    *EditSimilar-todo*
 ==============================================================================
 HISTORY							 *EditSimilar-history*
 
+1.17	25-Feb-2010
+BUG: :999EditPrevious on 'file00' caused E121: Undefined variable:
+l:replacement. 
+
 1.16	11-Nov-2009
 BUG: Next / previous commands interpreted files such as 'C406' as hexadecimal.
 Thanks to Andy Wokula for sending a patch. 
@@ -330,7 +334,7 @@ Initial implementation sketch of :Sppat and :Vsppat commands.
 Initial implementation sketch of :Sproot command. 
 
 ==============================================================================
-Copyright: (C) 2009 by Ingo Karkat
+Copyright: (C) 2009-2010 by Ingo Karkat
 The VIM LICENSE applies to this script; see |copyright|. 
 
 Maintainer:	Ingo Karkat <ingo@karkat.de>
