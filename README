@@ -7,7 +7,7 @@ can use the built-in cmdline-completion or filename-modifiers like %:r to
 quickly edit a similar file, or even use special plugins, e.g. to alternate
 between source and header files (vimscript #31). 
 
-This script provides custom versions of the :edit, :view, :split, :vsplit,
+This plugin provides custom versions of the :edit, :view, :split, :vsplit,
 :sview, :file, :write and :saveas commands which facilitate quick and simple
 editing of similarly named files. To quickly edit another file based on the
 current file, one can: 

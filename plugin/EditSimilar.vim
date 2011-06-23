@@ -3,12 +3,14 @@
 " DEPENDENCIES:
 "   - Requires EditSimilar.vim autoload script. 
 "
-" Copyright: (C) 2009 by Ingo Karkat
+" Copyright: (C) 2009-2011 by Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'. 
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS 
+"   1.18.008	22-Jun-2011	ENH: Implement completion of file extensions for
+"				EditSimilar-root commands like :EditRoot. 
 "   1.13.007	26-Jun-2009	:EditNext / :EditPrevious without the optional
 "				[count] now skip over gaps in numbering. Changed
 "				the default [count] to 0 to be able to detect a
@@ -36,6 +38,9 @@ if exists('g:loaded_EditSimilar') || (v:version < 700)
     finish
 endif
 let g:loaded_EditSimilar = 1
+
+let s:save_cpo = &cpo
+set cpo&vim
 
 " Substitute commands. 
 command! -bar -bang -nargs=+ EditSubstitute	call EditSimilar#OpenSubstitute('edit',   <bang>0, expand('%:p'), <f-args>)
@@ -85,20 +90,29 @@ command! -bar -bang -count=0 SavePrevious	call EditSimilar#OpenOffset('saveas<ba
 
 
 " Root (i.e. file extension) commands. 
-command! -bar -bang -nargs=1 EditRoot     call EditSimilar#OpenRoot('edit',   <bang>0, expand('%'), <f-args>)
-command! -bar -bang -nargs=1 Eroot        call EditSimilar#OpenRoot('edit',   <bang>0, expand('%'), <f-args>)
-command! -bar -bang -nargs=1 ViewRoot     call EditSimilar#OpenRoot('view',   <bang>0, expand('%'), <f-args>)
-command! -bar -bang -nargs=1 Vroot        call EditSimilar#OpenRoot('view',   <bang>0, expand('%'), <f-args>)
-command! -bar -bang -nargs=1 SplitRoot    call EditSimilar#OpenRoot('split',  <bang>0, expand('%'), <f-args>)
-command! -bar -bang -nargs=1 Sproot       call EditSimilar#OpenRoot('split',  <bang>0, expand('%'), <f-args>)
-command! -bar -bang -nargs=1 VsplitRoot   call EditSimilar#OpenRoot('vsplit', <bang>0, expand('%'), <f-args>)
-command! -bar -bang -nargs=1 Vsproot      call EditSimilar#OpenRoot('vsplit', <bang>0, expand('%'), <f-args>)
-command! -bar -bang -nargs=1 SviewRoot    call EditSimilar#OpenRoot('sview',  <bang>0, expand('%'), <f-args>)
-command! -bar -bang -nargs=1 Svroot       call EditSimilar#OpenRoot('sview',  <bang>0, expand('%'), <f-args>)
+function! s:RootComplete( ArgLead, CmdLine, CursorPos )
+    return map(
+    \	split(
+    \	    glob(expand('%:r') . '.' . a:ArgLead . '*'),
+    \	    "\n"
+    \	),
+    \	'fnamemodify(v:val, ":e")'
+    \)
+endfunction
+command! -bar -bang -nargs=1 -complete=customlist,<SID>RootComplete EditRoot     call EditSimilar#OpenRoot('edit',   <bang>0, expand('%'), <f-args>)
+command! -bar -bang -nargs=1 -complete=customlist,<SID>RootComplete Eroot        call EditSimilar#OpenRoot('edit',   <bang>0, expand('%'), <f-args>)
+command! -bar -bang -nargs=1 -complete=customlist,<SID>RootComplete ViewRoot     call EditSimilar#OpenRoot('view',   <bang>0, expand('%'), <f-args>)
+command! -bar -bang -nargs=1 -complete=customlist,<SID>RootComplete Vroot        call EditSimilar#OpenRoot('view',   <bang>0, expand('%'), <f-args>)
+command! -bar -bang -nargs=1 -complete=customlist,<SID>RootComplete SplitRoot    call EditSimilar#OpenRoot('split',  <bang>0, expand('%'), <f-args>)
+command! -bar -bang -nargs=1 -complete=customlist,<SID>RootComplete Sproot       call EditSimilar#OpenRoot('split',  <bang>0, expand('%'), <f-args>)
+command! -bar -bang -nargs=1 -complete=customlist,<SID>RootComplete VsplitRoot   call EditSimilar#OpenRoot('vsplit', <bang>0, expand('%'), <f-args>)
+command! -bar -bang -nargs=1 -complete=customlist,<SID>RootComplete Vsproot      call EditSimilar#OpenRoot('vsplit', <bang>0, expand('%'), <f-args>)
+command! -bar -bang -nargs=1 -complete=customlist,<SID>RootComplete SviewRoot    call EditSimilar#OpenRoot('sview',  <bang>0, expand('%'), <f-args>)
+command! -bar -bang -nargs=1 -complete=customlist,<SID>RootComplete Svroot       call EditSimilar#OpenRoot('sview',  <bang>0, expand('%'), <f-args>)
 
-command! -bar       -nargs=1 FileRoot     call EditSimilar#OpenRoot('file',         1, expand('%'), <f-args>)
-command! -bar -bang -nargs=1 WriteRoot    call EditSimilar#OpenRoot('write<bang>',  1, expand('%'), <f-args>)
-command! -bar -bang -nargs=1 SaveRoot     call EditSimilar#OpenRoot('saveas<bang>', 1, expand('%'), <f-args>)
+command! -bar       -nargs=1 -complete=customlist,<SID>RootComplete FileRoot     call EditSimilar#OpenRoot('file',         1, expand('%'), <f-args>)
+command! -bar -bang -nargs=1 -complete=customlist,<SID>RootComplete WriteRoot    call EditSimilar#OpenRoot('write<bang>',  1, expand('%'), <f-args>)
+command! -bar -bang -nargs=1 -complete=customlist,<SID>RootComplete SaveRoot     call EditSimilar#OpenRoot('saveas<bang>', 1, expand('%'), <f-args>)
 
 
 " Pattern commands. 
@@ -111,4 +125,6 @@ command! -bar -nargs=1 Vsppat	       call EditSimilar#SplitPattern('vsplit', <f-
 command! -bar -nargs=1 SviewPattern    call EditSimilar#SplitPattern('sview', <f-args>)
 command! -bar -nargs=1 Svpat	       call EditSimilar#SplitPattern('sview', <f-args>)
 
+let &cpo = s:save_cpo
+unlet s:save_cpo
 " vim: set sts=4 sw=4 noexpandtab ff=unix fdm=syntax :

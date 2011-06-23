@@ -3,9 +3,9 @@
 			EDIT SIMILAR    by Ingo Karkat
 							     *EditSimilar.vim*
 description			|EditSimilar-description|
-usage	    			|EditSimilar-usage|
-installation   			|EditSimilar-installation|
-configuration  			|EditSimilar-configuration|
+usage				|EditSimilar-usage|
+installation			|EditSimilar-installation|
+configuration			|EditSimilar-configuration|
 known problems			|EditSimilar-known-problems|
 todo				|EditSimilar-todo|
 history				|EditSimilar-history|
@@ -19,7 +19,7 @@ can use the built-in |cmdline-completion|  or |filename-modifiers| like %:r to
 quickly edit a similar file, or even use special plugins, e.g. to alternate
 between source and header files (vimscript #31). 
 
-This script provides custom versions of
+This plugin provides custom versions of
 the|:edit|,|:view|,|:split|,|:vsplit|,|:sview|,|:file|,|:write| and|:saveas|
 commands which facilitate quick and simple editing of similarly named files.
 To quickly edit another file based on the current file, one can: 
@@ -282,6 +282,10 @@ TODO							    *EditSimilar-todo*
 ==============================================================================
 HISTORY							 *EditSimilar-history*
 
+1.18	22-Jun-2011
+ENH: Implement completion of file extensions for EditSimilar-root commands
+like :EditRoot. 
+
 1.17	25-Feb-2010
 BUG: :999EditPrevious on 'file00' caused E121: Undefined variable:
 l:replacement. 
@@ -334,7 +338,7 @@ Initial implementation sketch of :Sppat and :Vsppat commands.
 Initial implementation sketch of :Sproot command. 
 
 ==============================================================================
-Copyright: (C) 2009-2010 by Ingo Karkat
+Copyright: (C) 2009-2011 Ingo Karkat
 The VIM LICENSE applies to this script; see |copyright|. 
 
 Maintainer:	Ingo Karkat <ingo@karkat.de>
