@@ -282,6 +282,11 @@ TODO							    *EditSimilar-todo*
 ==============================================================================
 HISTORY							 *EditSimilar-history*
 
+1.19	25-Jul-2011
+Avoid that :SplitPattern usually opens splits in reverse glob order (with
+default 'nosplitbelow' / 'nosplitright') by forcing :belowright splitting for
+all splits after the first. I.e. behave more like vim -o {pattern}. 
+
 1.18	22-Jun-2011
 ENH: Implement completion of file extensions for EditSimilar-root commands
 like :EditRoot. 

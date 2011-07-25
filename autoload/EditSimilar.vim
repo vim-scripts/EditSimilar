@@ -3,12 +3,17 @@
 " DEPENDENCIES:
 "   - escapings.vim autoload script. 
 "
-" Copyright: (C) 2009-2010 by Ingo Karkat
+" Copyright: (C) 2009-2011 by Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'. 
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS 
+"   1.19.016	25-Jul-2011	Avoid that :SplitPattern usually opens splits in
+"				reverse glob order (with default 'nosplitbelow'
+"				/ 'nosplitright') by forcing :belowright
+"				splitting for all splits after the first. I.e.
+"				behave more like vim -o {pattern}. 
 "   1.17.015	25-Feb-2010	BUG: :999EditPrevious on 'file00' caused E121:
 "				Undefined variable: l:replacement. 
 "   1.16.014	11-Nov-2009	BUG: Next / previous commands interpreted files
@@ -440,7 +445,14 @@ function! EditSimilar#SplitPattern( splitcmd, pattern )
     let l:filespecs = map( split(glob(a:pattern), "\n"), "fnamemodify(v:val, ':p')" )
     for l:filespec in l:filespecs
 	if bufwinnr(escapings#bufnameescape(l:filespec)) == -1
-	    execute a:splitcmd escapings#fnameescape(fnamemodify(l:filespec, ':~:.'))
+	    " The glob (usually) returns file names sorted alphabetially, and
+	    " the splits should also be arranged like that (like vim -o file1
+	    " file2 file3 does). So, we only observe 'splitbelow' and
+	    " 'splitright' for the very first split, and then force splitting
+	    " :belowright. 
+	    let l:splitWhere = (l:openCnt == 0 ? '' : 'belowright')
+
+	    execute l:splitWhere a:splitcmd escapings#fnameescape(fnamemodify(l:filespec, ':~:.'))
 	    let l:openCnt += 1
 	endif
     endfor

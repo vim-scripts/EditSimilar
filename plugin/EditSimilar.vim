@@ -98,6 +98,8 @@ function! s:RootComplete( ArgLead, CmdLine, CursorPos )
     \	),
     \	'fnamemodify(v:val, ":e")'
     \)
+    " Note: No need for fnameescape(); the Root commands don't support Vim
+    " special characters like % and # and therefore do the escaping themselves. 
 endfunction
 command! -bar -bang -nargs=1 -complete=customlist,<SID>RootComplete EditRoot     call EditSimilar#OpenRoot('edit',   <bang>0, expand('%'), <f-args>)
 command! -bar -bang -nargs=1 -complete=customlist,<SID>RootComplete Eroot        call EditSimilar#OpenRoot('edit',   <bang>0, expand('%'), <f-args>)
