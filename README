@@ -29,14 +29,14 @@ simpler file wildcards).
 :EditSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
 :ViewSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
 :SplitSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
-:VsplitSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
-:SviewSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
+:VSplitSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
+:SViewSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
 :FileSubstitute {text}={replacement} [{text}={replacement} [...]] 
 :WriteSubstitute[!] {text}={replacement} [{text}={replacement} [...]] 
 :SaveSubstitute[!] {text}={replacement} [{text}={replacement} [...]] 
-(+ shortcut commands like :Esubst[!] ...)
 
-Next / Previous: Add an offset to the last number in the currently edited file. 
+Next / Previous: Add an offset to the last (decimal) number in the currently
+edited file. 
 :[N]EditNext[!] [N]
 :[N]EditPrevious[!] [N]
 :...

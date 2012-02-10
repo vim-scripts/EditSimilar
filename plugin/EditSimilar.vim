@@ -1,14 +1,35 @@
 " EditSimilar.vim: Commands to edit files with a similar filename. 
 "
 " DEPENDENCIES:
-"   - Requires EditSimilar.vim autoload script. 
+"   - EditSimilar.vim autoload script. 
+"   - EditSimilar/CommandBuilder.vim autoload script. 
 "
-" Copyright: (C) 2009-2011 by Ingo Karkat
+" Copyright: (C) 2009-2012 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'. 
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS 
+"   1.22.011	10-Feb-2012	ENH: Allow [v]split mode different than
+"				determined by 'splitbelow' / 'splitright' via
+"				configuration. 
+"   1.21.010	19-Jan-2012	Move file extension completion to
+"				EditSimilar#Root#Complete() and create the root
+"				commands also in the command builder. 
+"   1.20.009	05-Nov-2011	ENH: Omit current buffer's file extension from
+"				the completion for EditSimilar-root commands. 
+"				Use
+"				EditSimilar#CommandBuilder#SimilarFileOperations()
+"				to create the :*Substitute, :*Next and
+"				:*Previous commands. 
+"				Obsolete the short command forms :Esubst,
+"				:Enext, :Eprev; the starting uppercase letter
+"				makes them still awkward to type, there's more
+"				likely a conflict with other custom commands
+"				(e.g. :En -> :Encode, :Enext), and I now believe
+"				aliasing via cmdalias.vim is the better way to
+"				provide personal shortcuts, instead of polluting
+"				the command namespace with all these duplicates. 
 "   1.18.008	22-Jun-2011	ENH: Implement completion of file extensions for
 "				EditSimilar-root commands like :EditRoot. 
 "   1.13.007	26-Jun-2009	:EditNext / :EditPrevious without the optional
@@ -17,7 +38,7 @@
 "				given count. 
 "   1.11.006	11-May-2009	Added commands to open similar files in
 "				read-only mode, a la :ViewSubstitute,
-"				:SviewSubstitute. 
+"				:SViewSubstitute. 
 "   1.00.005	18-Feb-2009	Reviewed for publication. 
 "	004	04-Feb-2009	Full path '%:p' not needed for root commands. 
 "	003	02-Feb-2009	Moved functions from plugin to separate autoload
@@ -33,100 +54,42 @@
 "				(:Eprev) version. 
 "	001	29-Jan-2009	file creation
 
-" Avoid installing twice or when in unsupported VIM version. 
+" Avoid installing twice or when in unsupported Vim version. 
 if exists('g:loaded_EditSimilar') || (v:version < 700)
     finish
 endif
 let g:loaded_EditSimilar = 1
 
-let s:save_cpo = &cpo
-set cpo&vim
+"- configuration ---------------------------------------------------------------
 
-" Substitute commands. 
-command! -bar -bang -nargs=+ EditSubstitute	call EditSimilar#OpenSubstitute('edit',   <bang>0, expand('%:p'), <f-args>)
-command! -bar -bang -nargs=+ Esubst		call EditSimilar#OpenSubstitute('edit',   <bang>0, expand('%:p'), <f-args>)
-command! -bar -bang -nargs=+ ViewSubstitute	call EditSimilar#OpenSubstitute('view',   <bang>0, expand('%:p'), <f-args>)
-command! -bar -bang -nargs=+ Vsubst		call EditSimilar#OpenSubstitute('view',   <bang>0, expand('%:p'), <f-args>)
-command! -bar -bang -nargs=+ SplitSubstitute	call EditSimilar#OpenSubstitute('split',  <bang>0, expand('%:p'), <f-args>)
-command! -bar -bang -nargs=+ Spsubst	    	call EditSimilar#OpenSubstitute('split',  <bang>0, expand('%:p'), <f-args>)
-command! -bar -bang -nargs=+ VsplitSubstitute	call EditSimilar#OpenSubstitute('vsplit', <bang>0, expand('%:p'), <f-args>)
-command! -bar -bang -nargs=+ Vspsubst	    	call EditSimilar#OpenSubstitute('vsplit', <bang>0, expand('%:p'), <f-args>)
-command! -bar -bang -nargs=+ SviewSubstitute	call EditSimilar#OpenSubstitute('sview',  <bang>0, expand('%:p'), <f-args>)
-command! -bar -bang -nargs=+ Svsubst	    	call EditSimilar#OpenSubstitute('sview',  <bang>0, expand('%:p'), <f-args>)
-
-command! -bar	    -nargs=+ FileSubstitute	call EditSimilar#OpenSubstitute('file',         1, expand('%:p'), <f-args>)
-command! -bar -bang -nargs=+ WriteSubstitute	call EditSimilar#OpenSubstitute('write<bang>',  1, expand('%:p'), <f-args>)
-command! -bar -bang -nargs=+ SaveSubstitute	call EditSimilar#OpenSubstitute('saveas<bang>', 1, expand('%:p'), <f-args>)
+if ! exists('g:EditSimilar_splitmode')
+    let g:EditSimilar_splitmode = ''
+endif
+if ! exists('g:EditSimilar_vsplitmode')
+    let g:EditSimilar_vsplitmode = ''
+endif
 
 
-" Next / Previous commands. 
-command! -bar -bang -count=0 EditNext		call EditSimilar#OpenOffset('edit',   <bang>0, expand('%:p'), <count>,  1)
-command! -bar -bang -count=0 Enext		call EditSimilar#OpenOffset('edit',   <bang>0, expand('%:p'), <count>,  1)
-command! -bar -bang -count=0 EditPrevious	call EditSimilar#OpenOffset('edit',   <bang>0, expand('%:p'), <count>, -1)
-command! -bar -bang -count=0 Eprev		call EditSimilar#OpenOffset('edit',   <bang>0, expand('%:p'), <count>, -1)
-command! -bar -bang -count=0 ViewNext		call EditSimilar#OpenOffset('view',   <bang>0, expand('%:p'), <count>,  1)
-command! -bar -bang -count=0 Vnext		call EditSimilar#OpenOffset('view',   <bang>0, expand('%:p'), <count>,  1)
-command! -bar -bang -count=0 ViewPrevious	call EditSimilar#OpenOffset('view',   <bang>0, expand('%:p'), <count>, -1)
-command! -bar -bang -count=0 Vprev		call EditSimilar#OpenOffset('view',   <bang>0, expand('%:p'), <count>, -1)
-command! -bar -bang -count=0 SplitNext		call EditSimilar#OpenOffset('split',  <bang>0, expand('%:p'), <count>,  1)
-command! -bar -bang -count=0 Spnext		call EditSimilar#OpenOffset('split',  <bang>0, expand('%:p'), <count>,  1)
-command! -bar -bang -count=0 SplitPrevious	call EditSimilar#OpenOffset('split',  <bang>0, expand('%:p'), <count>, -1)
-command! -bar -bang -count=0 Spprev		call EditSimilar#OpenOffset('split',  <bang>0, expand('%:p'), <count>, -1)
-command! -bar -bang -count=0 VsplitNext		call EditSimilar#OpenOffset('vsplit', <bang>0, expand('%:p'), <count>,  1)
-command! -bar -bang -count=0 Vspnext		call EditSimilar#OpenOffset('vsplit', <bang>0, expand('%:p'), <count>,  1)
-command! -bar -bang -count=0 VsplitPrevious	call EditSimilar#OpenOffset('vsplit', <bang>0, expand('%:p'), <count>, -1)
-command! -bar -bang -count=0 Vspprev	    	call EditSimilar#OpenOffset('vsplit', <bang>0, expand('%:p'), <count>, -1)
-command! -bar -bang -count=0 SviewNext		call EditSimilar#OpenOffset('sview',  <bang>0, expand('%:p'), <count>,  1)
-command! -bar -bang -count=0 Svnext		call EditSimilar#OpenOffset('sview',  <bang>0, expand('%:p'), <count>,  1)
-command! -bar -bang -count=0 SviewPrevious	call EditSimilar#OpenOffset('sview',  <bang>0, expand('%:p'), <count>, -1)
-command! -bar -bang -count=0 Svprev		call EditSimilar#OpenOffset('sview',  <bang>0, expand('%:p'), <count>, -1)
 
-command! -bar	    -count=0 FileNext		call EditSimilar#OpenOffset('file',         1, expand('%:p'), <count>,  1)
-command! -bar	    -count=0 FilePrevious	call EditSimilar#OpenOffset('file',         1, expand('%:p'), <count>, -1)
-command! -bar -bang -count=0 WriteNext		call EditSimilar#OpenOffset('write<bang>',  1, expand('%:p'), <count>,  1)
-command! -bar -bang -count=0 WritePrevious	call EditSimilar#OpenOffset('write<bang>',  1, expand('%:p'), <count>, -1)
-command! -bar -bang -count=0 SaveNext		call EditSimilar#OpenOffset('saveas<bang>', 1, expand('%:p'), <count>,  1)
-command! -bar -bang -count=0 SavePrevious	call EditSimilar#OpenOffset('saveas<bang>', 1, expand('%:p'), <count>, -1)
+"- commands --------------------------------------------------------------------
 
-
+" Substitute and Next / Previous commands. 
 " Root (i.e. file extension) commands. 
-function! s:RootComplete( ArgLead, CmdLine, CursorPos )
-    return map(
-    \	split(
-    \	    glob(expand('%:r') . '.' . a:ArgLead . '*'),
-    \	    "\n"
-    \	),
-    \	'fnamemodify(v:val, ":e")'
-    \)
-    " Note: No need for fnameescape(); the Root commands don't support Vim
-    " special characters like % and # and therefore do the escaping themselves. 
-endfunction
-command! -bar -bang -nargs=1 -complete=customlist,<SID>RootComplete EditRoot     call EditSimilar#OpenRoot('edit',   <bang>0, expand('%'), <f-args>)
-command! -bar -bang -nargs=1 -complete=customlist,<SID>RootComplete Eroot        call EditSimilar#OpenRoot('edit',   <bang>0, expand('%'), <f-args>)
-command! -bar -bang -nargs=1 -complete=customlist,<SID>RootComplete ViewRoot     call EditSimilar#OpenRoot('view',   <bang>0, expand('%'), <f-args>)
-command! -bar -bang -nargs=1 -complete=customlist,<SID>RootComplete Vroot        call EditSimilar#OpenRoot('view',   <bang>0, expand('%'), <f-args>)
-command! -bar -bang -nargs=1 -complete=customlist,<SID>RootComplete SplitRoot    call EditSimilar#OpenRoot('split',  <bang>0, expand('%'), <f-args>)
-command! -bar -bang -nargs=1 -complete=customlist,<SID>RootComplete Sproot       call EditSimilar#OpenRoot('split',  <bang>0, expand('%'), <f-args>)
-command! -bar -bang -nargs=1 -complete=customlist,<SID>RootComplete VsplitRoot   call EditSimilar#OpenRoot('vsplit', <bang>0, expand('%'), <f-args>)
-command! -bar -bang -nargs=1 -complete=customlist,<SID>RootComplete Vsproot      call EditSimilar#OpenRoot('vsplit', <bang>0, expand('%'), <f-args>)
-command! -bar -bang -nargs=1 -complete=customlist,<SID>RootComplete SviewRoot    call EditSimilar#OpenRoot('sview',  <bang>0, expand('%'), <f-args>)
-command! -bar -bang -nargs=1 -complete=customlist,<SID>RootComplete Svroot       call EditSimilar#OpenRoot('sview',  <bang>0, expand('%'), <f-args>)
-
-command! -bar       -nargs=1 -complete=customlist,<SID>RootComplete FileRoot     call EditSimilar#OpenRoot('file',         1, expand('%'), <f-args>)
-command! -bar -bang -nargs=1 -complete=customlist,<SID>RootComplete WriteRoot    call EditSimilar#OpenRoot('write<bang>',  1, expand('%'), <f-args>)
-command! -bar -bang -nargs=1 -complete=customlist,<SID>RootComplete SaveRoot     call EditSimilar#OpenRoot('saveas<bang>', 1, expand('%'), <f-args>)
+call EditSimilar#CommandBuilder#SimilarFileOperations('Edit',   'edit', 1, '<bang>0')
+call EditSimilar#CommandBuilder#SimilarFileOperations('View',   'view', 1, '<bang>0')
+call EditSimilar#CommandBuilder#SimilarFileOperations('Split',  join([g:EditSimilar_splitmode, 'split']),   1, '<bang>0')
+call EditSimilar#CommandBuilder#SimilarFileOperations('VSplit', join([g:EditSimilar_vsplitmode, 'vsplit']), 1, '<bang>0')
+call EditSimilar#CommandBuilder#SimilarFileOperations('SView',  join([g:EditSimilar_splitmode, 'sview']),   1, '<bang>0')
+call EditSimilar#CommandBuilder#SimilarFileOperations('File',   'file', 0, 1)
+call EditSimilar#CommandBuilder#SimilarFileOperations('Write',  'write<bang>', 1, 1)
+call EditSimilar#CommandBuilder#SimilarFileOperations('Save',   'saveas<bang>', 1, 1)
 
 
 " Pattern commands. 
 " Note: We cannot use -complete=file; it results in E77: too many files error
 " when using a pattern. 
-command! -bar -nargs=1 SplitPattern    call EditSimilar#SplitPattern('split', <f-args>)
-command! -bar -nargs=1 Sppat	       call EditSimilar#SplitPattern('split', <f-args>)
-command! -bar -nargs=1 VsplitPattern   call EditSimilar#SplitPattern('vsplit', <f-args>)
-command! -bar -nargs=1 Vsppat	       call EditSimilar#SplitPattern('vsplit', <f-args>)
-command! -bar -nargs=1 SviewPattern    call EditSimilar#SplitPattern('sview', <f-args>)
-command! -bar -nargs=1 Svpat	       call EditSimilar#SplitPattern('sview', <f-args>)
+command! -bar -nargs=1 SplitPattern    call EditSimilar#SplitPattern(join([g:EditSimilar_splitmode, 'split']),   <f-args>)
+command! -bar -nargs=1 VSplitPattern   call EditSimilar#SplitPattern(join([g:EditSimilar_vsplitmode, 'vsplit']), <f-args>)
+command! -bar -nargs=1 SViewPattern    call EditSimilar#SplitPattern(join([g:EditSimilar_splitmode, 'sview']),   <f-args>)
 
-let &cpo = s:save_cpo
-unlet s:save_cpo
-" vim: set sts=4 sw=4 noexpandtab ff=unix fdm=syntax :
+" vim: set ts=8 sts=4 sw=4 noexpandtab ff=unix fdm=syntax :

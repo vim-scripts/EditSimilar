@@ -3,7 +3,7 @@
 " DEPENDENCIES:
 "   - escapings.vim autoload script. 
 "
-" Copyright: (C) 2009-2011 by Ingo Karkat
+" Copyright: (C) 2009-2011 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'. 
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
@@ -467,4 +467,4 @@ function! EditSimilar#SplitPattern( splitcmd, pattern )
     endif
 endfunction
 
-" vim: set sts=4 sw=4 noexpandtab ff=unix fdm=syntax :
+" vim: set ts=8 sts=4 sw=4 noexpandtab ff=unix fdm=syntax :

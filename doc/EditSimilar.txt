@@ -42,21 +42,16 @@ but the syntax is difficult to memorize (it's subtly different from |:s|) and
 harder to type (because one has to use regular expressions instead of the
 simpler file wildcards). 
 
-						   *:Esubst* *:EditSubstitute*
+							     *:EditSubstitute*
 :EditSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
-:Esubst[!] ...
-						   *:Vsubst* *:ViewSubstitute*
+							     *:ViewSubstitute*
 :ViewSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
-:Vsubst[!] ...
-						   *Spsubst* *SplitSubstitute*
+							     *SplitSubstitute*
 :SplitSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
-:Spsubst[!] ...
-					       *:Vspsubst* *:VsplitSubstitute*
-:VsplitSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
-:Vspsubst[!] ...
-						   *Svsubst* *SviewSubstitute*
-:SviewSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
-:Svsubst[!] ...
+							   *:VSplitSubstitute*
+:VSplitSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
+							     *SViewSubstitute*
+:SViewSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
 			Replaces all literal occurrences of {text} in the
 			currently edited file with {replacement}, and opens the
 			resulting file. If all substitutions can be made on the
@@ -71,18 +66,18 @@ simpler file wildcards).
 			can substitute occurrences in both path and filename
 			by specifying the same substitution twice: >
 			    /etc/test/superapp/test001.cfg
-			    :Esubstitute test=prod
+			    :EditSubstitute test=prod
 			    /etc/test/superapp/prod001.cfg
-			    :Esubstitute test=prod test=prod
+			    :EditSubstitute test=prod test=prod
 			    /etc/prod/superapp/prod001.cfg
 <			Or perform different substitutions on filename and
 			pathspec: >
 			    /etc/test/superapp/test001.cfg
-			    :Esubstitute test=prod test=production
+			    :EditSubstitute test=prod test=production
 			    /etc/production/superapp/prod001.cfg
 <			Or across the entire filespec: >
 			    /etc/test/superapp/test001.cfg
-			    :Esubstitute superapp/test=normalapp/prod
+			    :EditSubstitute superapp/test=normalapp/prod
 			    /etc/test/normalapp/prod001.cfg
 
 <			Both {text} and {replacement} can include the usual
@@ -91,9 +86,9 @@ simpler file wildcards).
 			to exactly one filespec, as the underlying ex commands
 			can only open a single file. >
 			    /etc/test/superapp/test001.cfg
-			    :Esubstitute test=p* test=p*
+			    :EditSubstitute test=p* test=p*
 			    /etc/production/superapp/prod001.cfg
-			    :Esubstitute **=/tmp [01]=X
+			    :EditSubstitute **=/tmp [01]=X
 			    /tmp/prodXXX.cfg
 <			Add [!] to create a new file when the substituted file
 			does not exist. 
@@ -113,31 +108,21 @@ simpler file wildcards).
 							  *EditSimilar-offset*
 Next / Previous: Add an offset to the last (decimal) number in the currently
 edited file. 
-				 *:Enext* *:EditNext* *:Eprev* *:EditPrevious*
+						   *:EditNext* *:EditPrevious*
 :[N]EditNext[!] [N]
-:[N]Enext[!] [N]
 :[N]EditPrevious[!] [N]
-:[N]Eprev[!] [N]
-				 *:Vnext* *:ViewNext* *:Vprev* *:ViewPrevious*
+						   *:ViewNext* *:ViewPrevious*
 :[N]ViewNext[!] [N]
-:[N]Vnext[!] [N]
 :[N]ViewPrevious[!] [N]
-:[N]Vprev[!] [N]
-			     *:Spnext* *:SplitNext* *:Spprev* *:SplitPrevious*
+						 *:SplitNext* *:SplitPrevious*
 :[N]SplitNext[!] [N]
-:[N]Spnext[!] [N]
 :[N]SplitPrevious[!] [N]
-:[N]Spprev[!] [N]
-			 *:Vspnext* *:VsplitNext* *:Vspprev* *:VsplitPrevious*
-:[N]VsplitNext[!] [N]
-:[N]Vspnext[!] [N]
-:[N]VsplitPrevious[!] [N]
-:[N]Vspprev[!] [N]
-			     *:Svnext* *:SviewNext* *:Svprev* *:SviewPrevious*
-:[N]SviewNext[!] [N]
-:[N]Svnext[!] [N]
-:[N]SviewPrevious[!] [N]
-:[N]Svprev[!] [N]
+					       *:VSplitNext* *:VSplitPrevious*
+:[N]VSplitNext[!] [N]
+:[N]VSplitPrevious[!] [N]
+						 *:SViewNext* *:SViewPrevious*
+:[N]SViewNext[!] [N]
+:[N]SViewPrevious[!] [N]
 			Increases / decreases the last number found inside the
 			full absolute filespec of the currently edited file by
 			[N]. This works best on fixed-width numbers which are
@@ -158,12 +143,12 @@ edited file.
 			create number 0 by repeating the command with [N] = 1. 
 			Examples: >
 			test007.txt in a directory also containing 003-013. 
-			:Enext      -> test008.txt
-			:99Enext    -> test013.txt
-			:99Enext!   -> test106.txt [New File]
-			:99Eprev    -> test003.txt
-			:99Eprev!   -> test001.txt [New File]
-			:Enext      -> test003.txt
+			:EditNext      -> test008.txt
+			:99EditNext    -> test013.txt
+			:99EditNext!   -> test106.txt [New File]
+			:99Eprev       -> test003.txt
+			:99Eprev!      -> test001.txt [New File]
+			:EditNext      -> test003.txt
 <
 						   *:FilePrevious* *:FileNext*
 :[N]FileNext [N]
@@ -186,21 +171,16 @@ edited file.
 Root: Change the file extension in the currently edited file. 
 This is an enhanced version of the built-in: >
     :edit %:r.{extension}
-<							  *:Eroot* *:EditRoot*
+<								   *:EditRoot*
 :EditRoot[!] {extension}
-:Eroot[!] ...
-							  *:Vroot* *:ViewRoot*
+								   *:ViewRoot*
 :ViewRoot[!] {extension}
-:Vroot[!] ...
-							*:Sproot* *:SplitRoot*
+								  *:SplitRoot*
 :SplitRoot[!] {extension}
-:Sproot[!] ...
-						      *:Vsproot* *:VsplitRoot*
-:VsplitRoot[!] {extension}
-:Vsproot[!] ...
-							*:Svroot* *:SviewRoot*
-:SviewRoot[!] {extension}
-:Svroot[!] ...
+								 *:VSplitRoot*
+:VSplitRoot[!] {extension}
+								  *:SViewRoot*
+:SViewRoot[!] {extension}
 			Switches the current file's extension: 
 			Edits a file with the current file's path and name, but
 			replaces the file extension with the passed one. The
@@ -208,9 +188,9 @@ This is an enhanced version of the built-in: >
 			.txt or txt. To replace (or remove) multiple
 			extensions, prepend a . for each one: >
 			    myfile.txt.bak
-			    :Eroot ..cpp
+			    :EditRoot ..cpp
 			    myfile.cpp
-			    :Eroot .
+			    :EditRoot .
 			    myfile
 <
 			The {extension} can include the usual file wildcards
@@ -239,15 +219,12 @@ This is an enhanced version of the built-in: >
 Pattern: Open all files matching the pattern in split windows, similar to how
 |:argadd|{name} adds all matching files to the argument list. 
 
-						      *:Sppat* *:SplitPattern*
+							       *:SplitPattern*
 :SplitPattern {file-pattern}
-:Sppat ...
-						    *:Vsppat* *:VsplitPattern*
-:VsplitPattern {file-pattern}
-:Vsppat ...
-						      *:Svpat* *:SviewPattern*
-:SviewPattern {file-pattern}
-:Svpat ...
+							      *:VSplitPattern*
+:VSplitPattern {file-pattern}
+							       *:SViewPattern*
+:SViewPattern {file-pattern}
 			Open all files matching {file-pattern} in split windows.
 			If one of the files is already open, no second split is
 			generated. 
@@ -270,10 +247,38 @@ To uninstall, use the |:RmVimball| command.
 DEPENDENCIES					    *EditSimilar-dependencies*
 
 - Requires Vim 7.0 or higher. 
+- Optional, recommended: cmdalias plugin (vimscript #746). 
 
 ==============================================================================
 CONFIGURATION					   *EditSimilar-configuration*
 
+For a permanent configuration, put the following commands into your |vimrc|:
+
+							 *EditSimilar-aliases*
+All these edit commands are about speed; after all, they vie to be a faster
+alternative to the built-in commands that take a complete filename. Each
+user's Vim setup and behavior is different. Therefore, the previously defined
+short command forms :Esubst, :Enext, etc. are gone in version 1.20. Instead,
+you are encouraged to define your own shortcuts, depending on your preferences
+and needs. A great way to do this (because it allows the definition of pure
+lowercase commands) is defining short aliases through the cmdalias plugin
+(vimscript #746), like this: >
+    " Shorten the most frequently used commands from EditSimilar.vim. 
+    Alias es  EditSubstitute
+    Alias sps SplitSubstitute
+    Alias en  EditNext
+    Alias ep  EditPrevious
+    Alias er  EditRoot
+    Alias spr SplitRoot
+    Alias spp SplitPattern
+<
+			  *g:EditSimilar_splitmode* *g:EditSimilar_vsplitmode*
+All :Split..., :VSplit... and :SView commands obey the default 'splitbelow'
+and 'splitright' settings. If you want different behavior, you can insert the
+appropriate split modifier command via: >
+    let g:EditSimilar_splitmode = 'rightbelow'
+    let g:EditSimilar_vsplitmode = 'rightbelow'
+<
 ==============================================================================
 KNOWN PROBLEMS					  *EditSimilar-known-problems*
 
@@ -281,6 +286,28 @@ TODO							    *EditSimilar-todo*
 
 ==============================================================================
 HISTORY							 *EditSimilar-history*
+
+1.22	10-Feb-2012
+ENH: Allow [v]split mode different than determined by 'splitbelow' /
+'splitright' via configuration. 
+
+1.21	19-Jan-2012 (unreleased)
+Refactoring: Move file extension completion to EditSimilar#Root#Complete() and
+create the root commands also in the command builder. 
+
+1.20	08-Nov-2011 (unreleased)
+- ENH: Omit current buffer's file extension from the completion for
+  EditSimilar-root commands. 
+- Obsolete the short command forms :Esubst, :Enext, :Eprev; the starting
+  uppercase letter makes them still awkward to type, there's more likely a
+  conflict with other custom commands (e.g. :En -> :Encode, :Enext), and I now
+  believe aliasing via cmdalias.vim is the better way to provide personal
+  shortcuts, instead of polluting the command namespace with all these
+  duplicates. 
+- Rename :Vsplit... -> :VSplit... and :Sview... -> :SView... as I think this
+  is a more intuitive long form. (And now that the user is encouraged to
+  create his own custom short aliases, anyway.) The only other plugin with
+  similar commands that I know is bufexplorer with its :VSBufExplorer. 
 
 1.19	25-Jul-2011
 Avoid that :SplitPattern usually opens splits in reverse glob order (with
@@ -343,7 +370,7 @@ Initial implementation sketch of :Sppat and :Vsppat commands.
 Initial implementation sketch of :Sproot command. 
 
 ==============================================================================
-Copyright: (C) 2009-2011 Ingo Karkat
+Copyright: (C) 2009-2012 Ingo Karkat
 The VIM LICENSE applies to this script; see |copyright|. 
 
 Maintainer:	Ingo Karkat <ingo@karkat.de>
