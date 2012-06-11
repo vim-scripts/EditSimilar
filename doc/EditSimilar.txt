@@ -1,4 +1,4 @@
-*EditSimilar.txt*       Commands to edit files with a similar filename. 
+*EditSimilar.txt*       Commands to edit files with a similar filename.
 
 			EDIT SIMILAR    by Ingo Karkat
 							     *EditSimilar.vim*
@@ -17,18 +17,19 @@ Files edited in Vim often relate to one another; maybe they just differ in
 file extensions, are numbered sequentially, or contain common patterns. One
 can use the built-in |cmdline-completion|  or |filename-modifiers| like %:r to
 quickly edit a similar file, or even use special plugins, e.g. to alternate
-between source and header files (vimscript #31). 
+between source and header files (vimscript #31).
 
 This plugin provides custom versions of
 the|:edit|,|:view|,|:split|,|:vsplit|,|:sview|,|:file|,|:write| and|:saveas|
 commands which facilitate quick and simple editing of similarly named files.
-To quickly edit another file based on the current file, one can: 
+To quickly edit another file based on the current file, one can:
 - substitute {old} with {new}			   |EditSimilar-substitutions|
 - go to previous/next numbered file or			  |EditSimilar-offset|
   add any offset to the number
+- go to succeeding / preceding files in the same directory  |EditSimilar-next|
 - change the file extension				    |EditSimilar-root|
 
-To open a set of similar files, it is possible to: 
+To open a set of similar files, it is possible to:
 - open all files matching a pattern in split windows	 |EditSimilar-pattern|
 
 ==============================================================================
@@ -40,7 +41,7 @@ command). This can also be achieved with the built-in |filename-modifiers|: >
     :edit %:gs?pattern?replacement?
 but the syntax is difficult to memorize (it's subtly different from |:s|) and
 harder to type (because one has to use regular expressions instead of the
-simpler file wildcards). 
+simpler file wildcards).
 
 							     *:EditSubstitute*
 :EditSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
@@ -60,7 +61,7 @@ simpler file wildcards).
 			the substitutions that weren't applicable to the
 			filename are done to the full absolute pathspec.
 			Finally, substitutions spanning both pathspec and
-			filename are made. 
+			filename are made.
 
 			By taking advantage of these substitution scopes, you
 			can substitute occurrences in both path and filename
@@ -91,84 +92,119 @@ simpler file wildcards).
 			    :EditSubstitute **=/tmp [01]=X
 			    /tmp/prodXXX.cfg
 <			Add [!] to create a new file when the substituted file
-			does not exist. 
+			does not exist.
 							     *:FileSubstitute*
-:FileSubstitute {text}={replacement} [{text}={replacement} [...]] 
+:FileSubstitute {text}={replacement} [{text}={replacement} [...]]
 							    *:WriteSubstitute*
-:WriteSubstitute[!] {text}={replacement} [{text}={replacement} [...]] 
+:WriteSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
 							     *:SaveSubstitute*
-:SaveSubstitute[!] {text}={replacement} [{text}={replacement} [...]] 
+:SaveSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
 			Replaces all occurrences of {text} in the currently
 			edited file with {replacement}, and sets / writes the
-			resulting file. Wildcards can be used here, too. 
+			resulting file. Wildcards can be used here, too.
 			The [!] is needed to overwrite an existing file.
 
 
 ------------------------------------------------------------------------------
 							  *EditSimilar-offset*
-Next / Previous: Add an offset to the last (decimal) number in the currently
-edited file. 
-						   *:EditNext* *:EditPrevious*
-:[N]EditNext[!] [N]
-:[N]EditPrevious[!] [N]
-						   *:ViewNext* *:ViewPrevious*
-:[N]ViewNext[!] [N]
-:[N]ViewPrevious[!] [N]
-						 *:SplitNext* *:SplitPrevious*
-:[N]SplitNext[!] [N]
-:[N]SplitPrevious[!] [N]
-					       *:VSplitNext* *:VSplitPrevious*
-:[N]VSplitNext[!] [N]
-:[N]VSplitPrevious[!] [N]
-						 *:SViewNext* *:SViewPrevious*
-:[N]SViewNext[!] [N]
-:[N]SViewPrevious[!] [N]
+Plus / Minus: Add an offset to the last (decimal) number in the currently
+edited file.
+						      *:EditPlus* *:EditMinus*
+:[N]EditPlus[!] [N]
+:[N]EditMinus[!] [N]
+						      *:ViewPlus* *:ViewMinus*
+:[N]ViewPlus[!] [N]
+:[N]ViewMinus[!] [N]
+						    *:SplitPlus* *:SplitMinus*
+:[N]SplitPlus[!] [N]
+:[N]SplitMinus[!] [N]
+						  *:VSplitPlus* *:VSplitMinus*
+:[N]VSplitPlus[!] [N]
+:[N]VSplitMinus[!] [N]
+						    *:SViewPlus* *:SViewMinus*
+:[N]SViewPlus[!] [N]
+:[N]SViewMinus[!] [N]
 			Increases / decreases the last number found inside the
 			full absolute filespec of the currently edited file by
 			[N]. This works best on fixed-width numbers which are
-			padded with leading zeros: 001, 011, 123, etc.  
+			padded with leading zeros: 001, 011, 123, etc.
 			If a file with that number does not exist, the
 			substitution is retried with larger (no [N]) or
 			smaller ([N] given) offsets, unless [!] is specified.
 			This way, you can easily skip to the last / first
 			numbered file by specifying a sufficiently large [N],
-			(e.g. :99EditNext), while zooming over gaps in the
-			numbering via a simple :EditNext. 
+			(e.g. :99EditPlus), while zooming over gaps in the
+			numbering via a simple :EditPlus.
 			With [!], no skipping over non-existing numbers takes
 			place; instead, a new file is created when the
-			substituted file does not exist. 
+			substituted file does not exist.
 			When jumping to previous numbers, the resulting number
 			will never be negative. A jump with [!] and [N] > 1 will
 			create a file with number 1, not 0, but you can still
-			create number 0 by repeating the command with [N] = 1. 
+			create number 0 by repeating the command with [N] = 1.
 			Examples: >
-			test007.txt in a directory also containing 003-013. 
-			:EditNext      -> test008.txt
-			:99EditNext    -> test013.txt
-			:99EditNext!   -> test106.txt [New File]
+			test007.txt in a directory also containing 003-013.
+			:EditPlus      -> test008.txt
+			:99EditPlus    -> test013.txt
+			:99EditPlus!   -> test106.txt [New File]
 			:99Eprev       -> test003.txt
 			:99Eprev!      -> test001.txt [New File]
-			:EditNext      -> test003.txt
+			:EditPlus      -> test003.txt
 <
-						   *:FilePrevious* *:FileNext*
-:[N]FileNext [N]
-:[N]FilePrevious [N]
-						 *:WritePrevious* *:WriteNext*
-:[N]WriteNext[!] [N]
-:[N]WritePrevious[!] [N]
-						   *:SavePrevious* *:SaveNext*
-:[N]SaveNext[!] [N]
-:[N]SavePrevious[!] [N]
+						   *:FileMinus* *:FilePlus*
+:[N]FilePlus [N]
+:[N]FileMinus [N]
+						 *:WriteMinus* *:WritePlus*
+:[N]WritePlus[!] [N]
+:[N]WriteMinus[!] [N]
+						   *:SaveMinus* *:SavePlus*
+:[N]SavePlus[!] [N]
+:[N]SaveMinus[!] [N]
 			Increases / decreases the last number found inside the
 			full absolute filespec of the currently edited file by
 			[N] and sets / writes that file. (A fixed number width
-			via padding with leading zeros is maintained.) 
+			via padding with leading zeros is maintained.)
 			The [!] is needed to overwrite an existing file.
 
 
 ------------------------------------------------------------------------------
+							    *EditSimilar-next*
+Next / Previous: In the directory listing of the current file, go to
+succeeding / preceding file entries.
+						   *:EditNext* *:EditPrevious*
+:[N]EditNext [{filelist}]
+:[N]EditPrevious [{filelist}]
+						   *:ViewNext* *:ViewPrevious*
+:[N]ViewNext [{filelist}]
+:[N]ViewPrevious [{filelist}]
+						 *:SplitNext* *:SplitPrevious*
+:[N]SplitNext [{filelist}]
+:[N]SplitPrevious [{filelist}]
+					       *:VSplitNext* *:VSplitPrevious*
+:[N]VSplitNext [{filelist}]
+:[N]VSplitPrevious [{filelist}]
+						 *:SViewNext* *:SViewPrevious*
+:[N]SViewNext [{filelist}]
+:[N]SViewPrevious [{filelist}]
+			From the files in the same directory as the current
+			file, go to a succeeding / preceding one. If
+			{filelist} is specified (typically not via separate
+			files, but a file glob like foo*.txt), only those
+			files matching the glob are considered. Otherwise, *
+			is used, i.e. all files not starting with "." are
+			considered. To consider really all files, pass .* *
+			The 'wildignore' setting applies; matching files are
+			ignored, as well as any subdirectories.
+			The order of files is determined by the order in
+			{filelist} and the operating system / file system's
+			resolution of the glob, as elsewhere in Vim.
+			The current buffer must be contained in {filelist} for
+			the commands to work.
+
+
+------------------------------------------------------------------------------
 							    *EditSimilar-root*
-Root: Change the file extension in the currently edited file. 
+Root: Change the file extension in the currently edited file.
 This is an enhanced version of the built-in: >
     :edit %:r.{extension}
 <								   *:EditRoot*
@@ -181,7 +217,7 @@ This is an enhanced version of the built-in: >
 :VSplitRoot[!] {extension}
 								  *:SViewRoot*
 :SViewRoot[!] {extension}
-			Switches the current file's extension: 
+			Switches the current file's extension:
 			Edits a file with the current file's path and name, but
 			replaces the file extension with the passed one. The
 			leading '.' in {extension} is optional; use either
@@ -197,10 +233,10 @@ This is an enhanced version of the built-in: >
 			(?, *, cp. |file-pattern|) to save typing; however, the
 			file-pattern must resolve to exactly one existing
 			file, as the underlying ex commands can only open one
-			single file. 
+			single file.
 
 			Add [!] to create a new file when the substituted file
-			does not exist. 
+			does not exist.
 
 								   *:FileRoot*
 :FileRoot {extension}
@@ -210,14 +246,14 @@ This is an enhanced version of the built-in: >
 :SaveRoot[!] {extension}
 			Sets / saves a file with the current file's path and
 			name, but replaces the file extension with the passed
-			one. 
+			one.
 			The [!] is needed to overwrite an existing file.
 
 
 ------------------------------------------------------------------------------
 							 *EditSimilar-pattern*
 Pattern: Open all files matching the pattern in split windows, similar to how
-|:argadd|{name} adds all matching files to the argument list. 
+|:argadd|{name} adds all matching files to the argument list.
 
 							       *:SplitPattern*
 :SplitPattern {file-pattern}
@@ -227,11 +263,11 @@ Pattern: Open all files matching the pattern in split windows, similar to how
 :SViewPattern {file-pattern}
 			Open all files matching {file-pattern} in split windows.
 			If one of the files is already open, no second split is
-			generated. 
+			generated.
 			The {file-pattern} can include the usual file wildcards
-			(?, *, cp. |file-pattern|). 
+			(?, *, cp. |file-pattern|).
 			Makes all windows the same size if more than one has
-			been opened.  
+			been opened.
 
 ==============================================================================
 INSTALLATION					    *EditSimilar-installation*
@@ -242,12 +278,12 @@ the archive first, e.g. using WinZip. Inside Vim, install by sourcing the
 vimball or via the |:UseVimball| command. >
     vim EditSimilar.vba.gz
     :so %
-To uninstall, use the |:RmVimball| command. 
+To uninstall, use the |:RmVimball| command.
 
 DEPENDENCIES					    *EditSimilar-dependencies*
 
-- Requires Vim 7.0 or higher. 
-- Optional, recommended: cmdalias plugin (vimscript #746). 
+- Requires Vim 7.0 or higher.
+- Optional, recommended: cmdalias plugin (vimscript #746).
 
 ==============================================================================
 CONFIGURATION					   *EditSimilar-configuration*
@@ -263,9 +299,11 @@ you are encouraged to define your own shortcuts, depending on your preferences
 and needs. A great way to do this (because it allows the definition of pure
 lowercase commands) is defining short aliases through the cmdalias plugin
 (vimscript #746), like this: >
-    " Shorten the most frequently used commands from EditSimilar.vim. 
+    " Shorten the most frequently used commands from EditSimilar.vim.
     Alias es  EditSubstitute
     Alias sps SplitSubstitute
+    Alias epl EditPlus
+    Alias emi EditMinus
     Alias en  EditNext
     Alias ep  EditPrevious
     Alias er  EditRoot
@@ -284,94 +322,110 @@ KNOWN PROBLEMS					  *EditSimilar-known-problems*
 
 TODO							    *EditSimilar-todo*
 
+IDEAS							    *EditSimilar-ideas*
+
+- Add :EditRecursiveNext / :EditRecursivePrevious to recurse into and out of
+  subdirectories.
+
 ==============================================================================
 HISTORY							 *EditSimilar-history*
 
+2.00	11-Jun-2012
+- Rename the :EditNext / :EditPrevious commands to :EditPlus / :EditMinus and
+  redefine them to operate on directory contents instead of numerical offsets.
+  *** PLEASE USE THE NEW RENAMED COMMANDS AND
+      UPDATE ANY USAGES IN SCRIPTS AND MAPPINGS
+  ***
+- Better modularization of the different similarities.
+- BUG: Substituted filenames that only exist in an unpersisted Vim buffer
+  cause a "file does not exist" error when a:isCreateNew isn't set. Also check
+  Vim buffers for a match.
+
 1.22	10-Feb-2012
 ENH: Allow [v]split mode different than determined by 'splitbelow' /
-'splitright' via configuration. 
+'splitright' via configuration.
 
 1.21	19-Jan-2012 (unreleased)
 Refactoring: Move file extension completion to EditSimilar#Root#Complete() and
-create the root commands also in the command builder. 
+create the root commands also in the command builder.
 
 1.20	08-Nov-2011 (unreleased)
 - ENH: Omit current buffer's file extension from the completion for
-  EditSimilar-root commands. 
+  EditSimilar-root commands.
 - Obsolete the short command forms :Esubst, :Enext, :Eprev; the starting
   uppercase letter makes them still awkward to type, there's more likely a
   conflict with other custom commands (e.g. :En -> :Encode, :Enext), and I now
   believe aliasing via cmdalias.vim is the better way to provide personal
   shortcuts, instead of polluting the command namespace with all these
-  duplicates. 
+  duplicates.
 - Rename :Vsplit... -> :VSplit... and :Sview... -> :SView... as I think this
   is a more intuitive long form. (And now that the user is encouraged to
   create his own custom short aliases, anyway.) The only other plugin with
-  similar commands that I know is bufexplorer with its :VSBufExplorer. 
+  similar commands that I know is bufexplorer with its :VSBufExplorer.
 
 1.19	25-Jul-2011
 Avoid that :SplitPattern usually opens splits in reverse glob order (with
 default 'nosplitbelow' / 'nosplitright') by forcing :belowright splitting for
-all splits after the first. I.e. behave more like vim -o {pattern}. 
+all splits after the first. I.e. behave more like vim -o {pattern}.
 
 1.18	22-Jun-2011
 ENH: Implement completion of file extensions for EditSimilar-root commands
-like :EditRoot. 
+like :EditRoot.
 
 1.17	25-Feb-2010
 BUG: :999EditPrevious on 'file00' caused E121: Undefined variable:
-l:replacement. 
+l:replacement.
 
 1.16	11-Nov-2009
 BUG: Next / previous commands interpreted files such as 'C406' as hexadecimal.
-Thanks to Andy Wokula for sending a patch. 
+Thanks to Andy Wokula for sending a patch.
 
 1.15	09-Sep-2009
 Offset commands (:EditNext et al.) now check that the digit pattern does not
-accidentally match inside a hexadecimal number (which are unsupported). 
+accidentally match inside a hexadecimal number (which are unsupported).
 
 1.14	21-Aug-2009
 - BF: :[N]EditPrevious with supplied [N] would skip over existing smaller
-  number file and would claim that no substituted file existed. 
+  number file and would claim that no substituted file existed.
 - BF: :[N]EditPrevious with supplied large [N] together with a low original
   number hogs the CPU because the loop iterates over the entire number range
   where the resulting offset would be negative.
 
 1.13	27-Jun-2009
 ENH: :EditNext / :EditPrevious without the optional [count] now skip over gaps
-in numbering. 
+in numbering.
 
 1.12	13-May-2009
 - ENH: {text} in :EditSubstitute can now also contain file wildcards (?, *, **
-  and [...]) to save typing. 
+  and [...]) to save typing.
 - ENH: On Windows, {text} in :EditSubstitute can now also use forward slashes
-  as path separators (as an alternative to the usual backslashes). 
+  as path separators (as an alternative to the usual backslashes).
 - ENH: Supporting substitutions spanning both pathspec and filename by finally
-  applying failed replacements of multi-path elements to the entire filespec. 
+  applying failed replacements of multi-path elements to the entire filespec.
 
 1.11	11-May-2009
 Added ":ViewSimilar" and ":SviewSimilar" commands to open similar files in
-read-only mode. 
+read-only mode.
 
 1.10	23-Feb-2009
 ENH: {replacement} in :EditSubstitute and {extension} in :EditRoot can now
-contain file wildcards to save typing. 
+contain file wildcards to save typing.
 
 1.00	18-Feb-2009
-First published version. 
+First published version.
 
 0.01	29-Jan-2009
-Started development. 
+Started development.
 
 ---	20-Jan-2008
-Initial implementation sketch of :Sppat and :Vsppat commands. 
+Initial implementation sketch of :Sppat and :Vsppat commands.
 
 ---	13-Jul-2005
-Initial implementation sketch of :Sproot command. 
+Initial implementation sketch of :Sproot command.
 
 ==============================================================================
 Copyright: (C) 2009-2012 Ingo Karkat
-The VIM LICENSE applies to this script; see |copyright|. 
+The VIM LICENSE applies to this script; see |copyright|.
 
 Maintainer:	Ingo Karkat <ingo@karkat.de>
 ==============================================================================

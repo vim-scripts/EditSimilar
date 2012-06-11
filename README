@@ -5,49 +5,56 @@ Files edited in Vim often relate to one another; maybe they just differ in
 file extensions, are numbered sequentially, or contain common patterns. One
 can use the built-in cmdline-completion or filename-modifiers like %:r to
 quickly edit a similar file, or even use special plugins, e.g. to alternate
-between source and header files (vimscript #31). 
+between source and header files (vimscript #31).
 
 This plugin provides custom versions of the :edit, :view, :split, :vsplit,
 :sview, :file, :write and :saveas commands which facilitate quick and simple
 editing of similarly named files. To quickly edit another file based on the
-current file, one can: 
+current file, one can:
 - substitute {old} with {new}
 - go to previous/next numbered file or add any offset to the number
+- go to succeeding / preceding files in the same directory
 - change the file extension
-To open a set of similar files, it is possible to: 
+To open a set of similar files, it is possible to:
 - open all files matching a pattern in split windows
 
 USAGE
 Substitutions: Change all occurrences via {text}={replacement} in the
 currently edited file (modeled after the Korn shell's "cd {old} {new}"
-command). This can also be achieved with the built-in filename-modifiers: 
+command). This can also be achieved with the built-in filename-modifiers:
     :edit %:gs?pattern?replacement?
 but the syntax is difficult to memorize (it's subtly different from :s) and
 harder to type (because one has to use regular expressions instead of the
-simpler file wildcards). 
+simpler file wildcards).
 
 :EditSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
 :ViewSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
 :SplitSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
 :VSplitSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
 :SViewSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
-:FileSubstitute {text}={replacement} [{text}={replacement} [...]] 
-:WriteSubstitute[!] {text}={replacement} [{text}={replacement} [...]] 
-:SaveSubstitute[!] {text}={replacement} [{text}={replacement} [...]] 
+:FileSubstitute {text}={replacement} [{text}={replacement} [...]]
+:WriteSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
+:SaveSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
 
-Next / Previous: Add an offset to the last (decimal) number in the currently
-edited file. 
-:[N]EditNext[!] [N]
-:[N]EditPrevious[!] [N]
+Plus / Minus: Add an offset to the last (decimal) number in the currently
+edited file.
+:[N]EditPlus[!] [N]
+:[N]EditMinus[!] [N]
 :...
 
-Root: Change the file extension in the currently edited file. 
+Next / Previous: In the directory listing of the current file, go to
+succeeding / preceding file entries.
+:[N]EditNext [{filelist}]
+:[N]EditPrevious [{filelist}]
+:...
+
+Root: Change the file extension in the currently edited file.
 This is an enhanced version of the built-in :edit %:r.{extension}
 :EditRoot[!] {extension}
 :...
 
 Pattern: Open all files matching the pattern in split windows, similar to how
- :argadd {name} adds all matching files to the argument list. 
+ :argadd {name} adds all matching files to the argument list.
 
 :SplitPattern {file-pattern}
 :...
