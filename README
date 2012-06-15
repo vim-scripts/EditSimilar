@@ -22,7 +22,7 @@ USAGE
 Substitutions: Change all occurrences via {text}={replacement} in the
 currently edited file (modeled after the Korn shell's "cd {old} {new}"
 command). This can also be achieved with the built-in filename-modifiers:
-    :edit %:gs?pattern?replacement?
+    :edit %:gs?pattern?replacement?
 but the syntax is difficult to memorize (it's subtly different from :s) and
 harder to type (because one has to use regular expressions instead of the
 simpler file wildcards).

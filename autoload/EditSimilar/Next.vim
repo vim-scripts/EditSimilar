@@ -9,6 +9,11 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   2.01.003	12-Jun-2012	FIX: To avoid issues with differing forward
+"				slash / backslash path separator components,
+"				canonicalize the glob pattern and filespec. This
+"				avoids a "Cannot locate current file" error when
+"				there is a mismatch.
 "   2.00.002	11-Jun-2012	ENH: Allow passing custom fileargs / globs.
 "   2.00.001	09-Jun-2012	file creation
 let s:save_cpo = &cpo
@@ -16,7 +21,10 @@ set cpo&vim
 
 " Next / Previous commands.
 let s:pathSeparator = (exists('+shellslash') && ! &shellslash ? '\' : '/')
-function! s:getDirectoryEntries( dirSpec, fileGlobs )
+function! s:NormalizePathSeparators( filespec )
+    return substitute(a:filespec, '[/\\]', s:pathSeparator, 'g')
+endfunction
+function! EditSimilar#Next#GetDirectoryEntries( dirSpec, fileGlobs )
     let l:files = []
 
     " Get list of files, apply 'wildignore'.
@@ -33,13 +41,16 @@ function! s:ErrorMsg( text, fileGlobsString, ... )
     call EditSimilar#ErrorMsg(a:text . (empty(a:fileGlobsString) ? '' : ' matching ' . a:fileGlobsString) . (a:0 ? ': ' . a:1 : ''))
 endfunction
 function! EditSimilar#Next#Open( opencmd, isCreateNew, filespec, difference, direction, fileGlobsString )
-    let l:dirSpec = fnamemodify(a:filespec, ':h')
+    " To be able to find the current filespec in the glob results with a simple
+    " string compare, canonicalize all path separators to what Vim is internally
+    " using, i.e. depending on the 'shellslash' option.
+    let l:dirSpec = s:NormalizePathSeparators(fnamemodify(a:filespec, ':h'))
     let l:dirSpec = (l:dirSpec ==# '.' ? '' : l:dirSpec)
 
     let l:fileGlobs = (empty(a:fileGlobsString) ? ['*'] : split(a:fileGlobsString, '\\\@<! '))
-    let l:files = filter(s:getDirectoryEntries(l:dirSpec, l:fileGlobs), '! isdirectory(v:val)')
+    let l:files = filter(EditSimilar#Next#GetDirectoryEntries(l:dirSpec, l:fileGlobs), '! isdirectory(v:val)')
 
-    let l:currentIndex = index(l:files, a:filespec)
+    let l:currentIndex = index(l:files, s:NormalizePathSeparators(a:filespec))
     if l:currentIndex == -1
 	if len(l:files) == 0
 	    call s:ErrorMsg('No files in this directory', a:fileGlobsString)

@@ -330,6 +330,11 @@ IDEAS							    *EditSimilar-ideas*
 ==============================================================================
 HISTORY							 *EditSimilar-history*
 
+2.01	12-Jun-2012
+FIX: To avoid issues with differing forward slash / backslash path separator
+components, canonicalize the glob pattern and filespec. This avoids a "Cannot
+locate current file" error when there is a mismatch.
+
 2.00	11-Jun-2012
 - Rename the :EditNext / :EditPrevious commands to :EditPlus / :EditMinus and
   redefine them to operate on directory contents instead of numerical offsets.
