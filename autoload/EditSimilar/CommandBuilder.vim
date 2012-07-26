@@ -12,6 +12,16 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   2.10.006	26-Jul-2012	Change
+"				a:omitOperationsWorkingOnlyOnExistingFiles
+"				argument to optional a:options for
+"				extensibility.
+"   			    	ENH: Complete file extensions for any files
+"				found in the file's directory for those commands
+"				that most of the time are used to create new
+"				files; the default search for the current
+"				filename's extensions won't yield anything
+"				there. Add a:options.completeAnyRoot for that.
 "   2.00.005	11-Jun-2012	ENH: Allow passing custom fileargs / globs to
 "				*Next / *Previous commands.
 "   2.00.004	09-Jun-2012	Rename the *Next / *Previous commands to *Plus /
@@ -28,7 +38,7 @@
 let s:save_cpo = &cpo
 set cpo&vim
 
-function! EditSimilar#CommandBuilder#SimilarFileOperations( commandPrefix, fileCommand, hasBang, createNew, omitOperationsWorkingOnlyOnExistingFiles )
+function! EditSimilar#CommandBuilder#SimilarFileOperations( commandPrefix, fileCommand, hasBang, createNew, ... )
 "******************************************************************************
 "* PURPOSE:
 "   Create *Plus, *Minus, *Next, *Previous, *Substitute and *Root commands with
@@ -44,14 +54,22 @@ function! EditSimilar#CommandBuilder#SimilarFileOperations( commandPrefix, fileC
 "   a:isBang	    Flag whether a:fileCommand supports a bang.
 "   a:createNew	    Expression (e.g. '<bang>0') or flag whether a non-existing
 "		    filespec will be opened, thereby creating a new file.
-"   a:omitOperationsWorkingOnlyOnExistingFiles
+"   a:options       Optional Dictionary with configuration:
+"   a:options.omitOperationsWorkingOnlyOnExistingFiles
 "		    Flag that excludes the *Next and *Previous commands, which
 "		    do not make sense for some a:fileCommand, because they
 "		    cannot create new files.
+"   a:options.completeAnyRoot
+"		    Flag that makes the *Root commands complete file extensions
+"		    from any file in that directory, not just the extensions of
+"		    the current file name.
 "* RETURN VALUES:
 "   None.
 "******************************************************************************
     let l:bangArg = (a:hasBang ? '-bang' : '')
+    let l:options = (a:0 ? a:1 : {})
+    let l:omitOperationsWorkingOnlyOnExistingFiles = get(l:options, 'omitOperationsWorkingOnlyOnExistingFiles', 0)
+    let l:completeAnyRoot = get(l:options, 'completeAnyRoot', 0)
 
     execute printf('command! -bar %s -nargs=+ %sSubstitute call EditSimilar#Substitute#Open(%s, %s, expand("%%:p"), <f-args>)',
     \   l:bangArg, a:commandPrefix, string(a:fileCommand), a:createNew)
@@ -59,15 +77,20 @@ function! EditSimilar#CommandBuilder#SimilarFileOperations( commandPrefix, fileC
     \   l:bangArg, a:commandPrefix, string(a:fileCommand), a:createNew)
     execute printf('command! -bar %s -count=0 %sMinus      call EditSimilar#Offset#Open(%s, %s, expand("%%:p"), <count>,  -1)',
     \   l:bangArg, a:commandPrefix, string(a:fileCommand), a:createNew)
-    if ! a:omitOperationsWorkingOnlyOnExistingFiles
+    if ! l:omitOperationsWorkingOnlyOnExistingFiles
 	execute printf('command! -bar %s -range=0 -nargs=* -complete=file %sNext       call EditSimilar#Next#Open(%s, %s, expand("%%:p"), <count>,  1, <q-args>)',
 	\   l:bangArg, a:commandPrefix, string(a:fileCommand), a:createNew)
 	execute printf('command! -bar %s -range=0 -nargs=* -complete=file %sPrevious   call EditSimilar#Next#Open(%s, %s, expand("%%:p"), <count>,  -1, <q-args>)',
 	\   l:bangArg, a:commandPrefix, string(a:fileCommand), a:createNew)
     endif
-    execute printf('command! -bar %s -nargs=1 -complete=customlist,EditSimilar#Root#Complete ' .
+    execute printf('command! -bar %s -nargs=1 -complete=customlist,%s ' .
     \                                        '%sRoot       call EditSimilar#Root#Open(%s, %s, expand("%%"), <f-args>)',
-    \   l:bangArg, a:commandPrefix, string(a:fileCommand), a:createNew)
+    \   l:bangArg,
+    \   (l:completeAnyRoot ? 'EditSimilar#Root#CompleteAny' : 'EditSimilar#Root#Complete'),
+    \   a:commandPrefix,
+    \   string(a:fileCommand),
+    \   a:createNew
+    \)
 endfunction
 
 let &cpo = s:save_cpo

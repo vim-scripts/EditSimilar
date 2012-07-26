@@ -330,6 +330,11 @@ IDEAS							    *EditSimilar-ideas*
 ==============================================================================
 HISTORY							 *EditSimilar-history*
 
+2.10	26-Jul-2012
+ENH: Complete file extensions for any files found in the file's directory for
+those commands that most of the time are used to create new files; the default
+search for the current filename's extensions won't yield anything there.
+
 2.01	12-Jun-2012
 FIX: To avoid issues with differing forward slash / backslash path separator
 components, canonicalize the glob pattern and filespec. This avoids a "Cannot

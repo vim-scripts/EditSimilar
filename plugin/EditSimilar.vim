@@ -11,6 +11,9 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   2.10.013	26-Jul-2012	Adapt to changed EditSimilar interface.
+"				Now :File*, :Write*, and :Save* complete any
+"				file extensions.
 "   2.00.012	09-Jun-2012	Move all similarity implementations to separate
 "				modules.
 "   1.22.011	10-Feb-2012	ENH: Allow [v]split mode different than
@@ -78,14 +81,14 @@ endif
 
 " Substitute, Plus / Minus, and Next / Previous commands.
 " Root (i.e. file extension) commands.
-call EditSimilar#CommandBuilder#SimilarFileOperations('Edit',   'edit', 1, '<bang>0', 0)
-call EditSimilar#CommandBuilder#SimilarFileOperations('View',   'view', 1, '<bang>0', 0)
-call EditSimilar#CommandBuilder#SimilarFileOperations('Split',  join([g:EditSimilar_splitmode, 'split']),   1, '<bang>0', 0)
-call EditSimilar#CommandBuilder#SimilarFileOperations('VSplit', join([g:EditSimilar_vsplitmode, 'vsplit']), 1, '<bang>0', 0)
-call EditSimilar#CommandBuilder#SimilarFileOperations('SView',  join([g:EditSimilar_splitmode, 'sview']),   1, '<bang>0', 0)
-call EditSimilar#CommandBuilder#SimilarFileOperations('File',   'file', 0, 1, 1)
-call EditSimilar#CommandBuilder#SimilarFileOperations('Write',  'write<bang>', 1, 1, 1)
-call EditSimilar#CommandBuilder#SimilarFileOperations('Save',   'saveas<bang>', 1, 1, 1)
+call EditSimilar#CommandBuilder#SimilarFileOperations('Edit',   'edit',                                     1, '<bang>0', {'omitOperationsWorkingOnlyOnExistingFiles': 0, 'completeAnyRoot': 0})
+call EditSimilar#CommandBuilder#SimilarFileOperations('View',   'view',                                     1, '<bang>0', {'omitOperationsWorkingOnlyOnExistingFiles': 0, 'completeAnyRoot': 0})
+call EditSimilar#CommandBuilder#SimilarFileOperations('Split',  join([g:EditSimilar_splitmode, 'split']),   1, '<bang>0', {'omitOperationsWorkingOnlyOnExistingFiles': 0, 'completeAnyRoot': 0})
+call EditSimilar#CommandBuilder#SimilarFileOperations('VSplit', join([g:EditSimilar_vsplitmode, 'vsplit']), 1, '<bang>0', {'omitOperationsWorkingOnlyOnExistingFiles': 0, 'completeAnyRoot': 0})
+call EditSimilar#CommandBuilder#SimilarFileOperations('SView',  join([g:EditSimilar_splitmode, 'sview']),   1, '<bang>0', {'omitOperationsWorkingOnlyOnExistingFiles': 0, 'completeAnyRoot': 0})
+call EditSimilar#CommandBuilder#SimilarFileOperations('File',   'file',                                     0, 1,         {'omitOperationsWorkingOnlyOnExistingFiles': 1, 'completeAnyRoot': 1})
+call EditSimilar#CommandBuilder#SimilarFileOperations('Write',  'write<bang>',                              1, 1,         {'omitOperationsWorkingOnlyOnExistingFiles': 1, 'completeAnyRoot': 1})
+call EditSimilar#CommandBuilder#SimilarFileOperations('Save',   'saveas<bang>',                             1, 1,         {'omitOperationsWorkingOnlyOnExistingFiles': 1, 'completeAnyRoot': 1})
 
 
 " Pattern commands.
