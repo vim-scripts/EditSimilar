@@ -56,5 +56,5 @@ This is an enhanced version of the built-in :edit %:r.{extension}
 Pattern: Open all files matching the pattern in split windows, similar to how
  :argadd {name} adds all matching files to the argument list.
 
-:SplitPattern {file-pattern}
+:SplitPattern [++opt] [+cmd] {file-pattern} [{file-pattern} ...]
 :...

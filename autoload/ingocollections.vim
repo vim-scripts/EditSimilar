@@ -2,23 +2,101 @@
 "
 " DEPENDENCIES:
 "
-" Copyright: (C) 2011 Ingo Karkat
+" Copyright: (C) 2011-2012 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"	006	16-Aug-2012	Add ingocollections#uniqueSorted() and
+"				ingocollections#uniqueStable() variants of
+"				ingocollections#unique().
+"	005	30-Jul-2012	Split off ingocollections#ToDict() from
+"				ingocollections#unique(); it is useful on its
+"				own.
 "	004	25-Jul-2012	Add ingocollections#numsort().
 "	003	17-Jun-2011	Add ingocollections#isort().
 "	002	11-Jun-2011	Add ingocollections#SplitKeepSeparators().
 "	001	08-Oct-2010	file creation
 
-function! ingocollections#unique( list )
-    let l:itemHash = {}
+function! ingocollections#ToDict( list )
+    let l:itemDict = {}
     for l:item in a:list
-	let l:itemHash[l:item] = 1
+	let l:itemDict[l:item] = 1
     endfor
-    return keys(l:itemHash)
+    return l:itemDict
+endfunction
+function! ingocollections#unique( list )
+"******************************************************************************
+"* PURPOSE:
+"   Return a list where each element from a:list is contained only once.
+"   Equality check is done on the string representation, always case-sensitive.
+"* ASSUMPTIONS / PRECONDITIONS:
+"   None.
+"* EFFECTS / POSTCONDITIONS:
+"   None.
+"* INPUTS:
+"   a:list  List of elements; does not need to be sorted.
+"* RETURN VALUES:
+"   Return the string representation of the unique elements of a:list. The order
+"   of returned elements is undetermined. To maintain the original order, use
+"   ingocollections#uniqueStable(). To keep the original elements, use
+"   ingocollections#uniqueSorted(). But this is the fastest function.
+"******************************************************************************
+    return keys(ingocollections#ToDict(a:list))
+endfunction
+function! ingocollections#uniqueSorted( list )
+"******************************************************************************
+"* PURPOSE:
+"   Filter the sorted a:list so that each element is contained only once.
+"   Equality check is done on the list elements, always case-sensitive.
+"* ASSUMPTIONS / PRECONDITIONS:
+"   None.
+"* EFFECTS / POSTCONDITIONS:
+"   None.
+"* INPUTS:
+"   a:list  Sorted list of elements.
+"* RETURN VALUES:
+"   The order of returned elements is kept.
+"******************************************************************************
+    if len(a:list) < 2
+	return a:list
+    endif
+
+    let l:previousItem = a:list[0]
+    let l:result = [a:list[0]]
+    for l:item in a:list[1:]
+	if l:item !=# l:previousItem
+	    call add(l:result, l:item)
+	    let l:previousItem = l:item
+	endif
+    endfor
+    return l:result
+endfunction
+function! ingocollections#uniqueStable( list )
+"******************************************************************************
+"* PURPOSE:
+"   Filter a:list so that each element is contained only once (in its first
+"   occurrence).
+"   Equality check is done on the string representation, always case-sensitive.
+"* ASSUMPTIONS / PRECONDITIONS:
+"   None.
+"* EFFECTS / POSTCONDITIONS:
+"   None.
+"* INPUTS:
+"   a:list  List of elements; does not need to be sorted.
+"* RETURN VALUES:
+"   The order of returned elements is kept.
+"******************************************************************************
+    let l:itemDict = {}
+    let l:result = []
+    for l:item in a:list
+	if ! has_key(l:itemDict, l:item)
+	    let l:itemDict[l:item] = 1
+	    call add(l:result, l:item)
+	endif
+    endfor
+    return l:result
 endfunction
 
 function! s:add( list, expr, keepempty )

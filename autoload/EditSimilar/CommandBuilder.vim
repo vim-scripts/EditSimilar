@@ -49,8 +49,12 @@ function! EditSimilar#CommandBuilder#SimilarFileOperations( commandPrefix, fileC
 "   Creates commands.
 "* INPUTS:
 "   a:commandPrefix Name of the file operation command, used as a prefix to
-"		    generate the entire command.
-"   a:fileCommand   Command to be invoked with the similar file name.
+"		    generate the entire command. When you want to pass
+"		    :command options (like -range), just prepend them to name,
+"		    e.g. "-range=% MyFileCommand"
+"   a:fileCommand   Command to be invoked with the similar file name. Can
+"		    contain :command escape sequences, e.g.
+"		    "<line1>,<line2>MyCommand<bang>"
 "   a:isBang	    Flag whether a:fileCommand supports a bang.
 "   a:createNew	    Expression (e.g. '<bang>0') or flag whether a non-existing
 "		    filespec will be opened, thereby creating a new file.

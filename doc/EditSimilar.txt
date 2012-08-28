@@ -256,11 +256,11 @@ Pattern: Open all files matching the pattern in split windows, similar to how
 |:argadd|{name} adds all matching files to the argument list.
 
 							       *:SplitPattern*
-:SplitPattern {file-pattern}
+:SplitPattern [++opt] [+cmd] {file-pattern} [{file-pattern} ...]
 							      *:VSplitPattern*
-:VSplitPattern {file-pattern}
+:VSplitPattern [++opt] [+cmd] {file-pattern} [{file-pattern} ...]
 							       *:SViewPattern*
-:SViewPattern {file-pattern}
+:SViewPattern [++opt] [+cmd] {file-pattern} [{file-pattern} ...]
 			Open all files matching {file-pattern} in split windows.
 			If one of the files is already open, no second split is
 			generated.
@@ -273,10 +273,10 @@ Pattern: Open all files matching the pattern in split windows, similar to how
 INSTALLATION					    *EditSimilar-installation*
 
 This script is packaged as a |vimball|. If you have the "gunzip" decompressor
-in your PATH, simply edit the *.vba.gz package in Vim; otherwise, decompress
+in your PATH, simply edit the *.vmb.gz package in Vim; otherwise, decompress
 the archive first, e.g. using WinZip. Inside Vim, install by sourcing the
 vimball or via the |:UseVimball| command. >
-    vim EditSimilar.vba.gz
+    vim EditSimilar*.vmb.gz
     :so %
 To uninstall, use the |:RmVimball| command.
 
@@ -329,6 +329,11 @@ IDEAS							    *EditSimilar-ideas*
 
 ==============================================================================
 HISTORY							 *EditSimilar-history*
+
+2.20	26-Aug-2012
+- Allow passing of multiple {file-pattern} to :SplitPattern et al. and enable
+  file completion for them.
+- Handle optional ++opt +cmd file options and commands in :SplitPattern et al.
 
 2.10	26-Jul-2012
 ENH: Complete file extensions for any files found in the file's directory for
