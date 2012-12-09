@@ -32,6 +32,12 @@ To quickly edit another file based on the current file, one can:
 To open a set of similar files, it is possible to:
 - open all files matching a pattern in split windows	 |EditSimilar-pattern|
 
+RELATED WORKS								     *
+
+- altr (vimscript #4202) lets you set up custom (per-filetype) rules and then
+  opens related files through two forward / backward mappings, e.g. allowing
+  you to open the autoload file from the plugin.
+
 ==============================================================================
 USAGE							   *EditSimilar-usage*
 						   *EditSimilar-substitutions*
@@ -152,8 +158,8 @@ edited file.
 			:EditPlus      -> test003.txt
 <
 						   *:FileMinus* *:FilePlus*
-:[N]FilePlus [N]
-:[N]FileMinus [N]
+:[N]FilePlus[!] [N]
+:[N]FileMinus[!] [N]
 						 *:WriteMinus* *:WritePlus*
 :[N]WritePlus[!] [N]
 :[N]WriteMinus[!] [N]
@@ -164,7 +170,21 @@ edited file.
 			full absolute filespec of the currently edited file by
 			[N] and sets / writes that file. (A fixed number width
 			via padding with leading zeros is maintained.)
-			The [!] is needed to overwrite an existing file.
+			When [N] is given and no [!] is given, an existing
+			file with an offset of [N] or smaller is searched, and
+			if such an offset is found, that offset incremented by
+			one is used. This lets you use a large [N] to write
+			the file with the next number within [N] for which no
+			file exists yet.
+			When [!] is given, the file with the added offset is
+			written, plain and simple. [!] is also needed to
+			overwrite an existing file.
+			Examples: >
+			test007.txt in a directory also containing 003-013.
+			:WritePlus     -> file exists
+			:WritePlus!    -> test008.txt
+			:99WritePlus   -> test014.txt [New File]
+			:99WritePlus!  -> test106.txt [New File]
 
 
 ------------------------------------------------------------------------------
@@ -329,6 +349,13 @@ IDEAS							    *EditSimilar-ideas*
 
 ==============================================================================
 HISTORY							 *EditSimilar-history*
+
+2.30	09-Dec-2012
+CHG: For :FilePlus, :WritePlus, :SavePlus, when a [count] but no [!] is given,
+try to create an offset one more than an existing file between the current and
+the passed offset. This lets you use a large [N] to write the file with the
+next number within [N] for which no file exists yet. Change inspired by
+http://stackoverflow.com/questions/13778322/vimscript-code-to-create-a-new-numbered-file
 
 2.20	26-Aug-2012
 - Allow passing of multiple {file-pattern} to :SplitPattern et al. and enable

@@ -8,6 +8,7 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"	007	09-Nov-2012	Add ingocollections#MakeUnique().
 "	006	16-Aug-2012	Add ingocollections#uniqueSorted() and
 "				ingocollections#uniqueStable() variants of
 "				ingocollections#unique().
@@ -205,6 +206,34 @@ function! ingocollections#numsort( i1, i2, ... )
     let l:base = (a:0 ? a:1 : 10)
     let [l:i1, l:i2] = [str2nr(a:i1, l:base), str2nr(a:i2, l:base)]
     return l:i1 == l:i2 ? 0 : l:i1 > l:i2 ? 1 : -1
+endfunction
+
+function! ingocollections#MakeUnique( memory, expr )
+"******************************************************************************
+"* PURPOSE:
+"   Based on the a:memory lookup, create a unique String from a:expr by
+"   appending a running counter to it.
+"* ASSUMPTIONS / PRECONDITIONS:
+"   None.
+"* EFFECTS / POSTCONDITIONS:
+"   Adds the unique returned result to a:memory.
+"* INPUTS:
+"   a:memory    Dictionary holding the existing values as keys.
+"   a:expr      String that is made unique with regards to a:memory and
+"		returned.
+"* RETURN VALUES:
+"   a:expr (when it's not yet contained in the a:memory), or a unique version of
+"   it.
+"******************************************************************************
+    let l:result = a:expr
+    let l:counter = 0
+    while has_key(a:memory, l:result)
+	let l:counter += 1
+	let l:result = printf('%s%s(%d)', a:expr, (empty(a:expr) ? '' : ' '), l:counter)
+    endwhile
+
+    let a:memory[l:result] = 1
+    return l:result
 endfunction
 
 " vim: set ts=8 sts=4 sw=4 noexpandtab ff=unix fdm=syntax :

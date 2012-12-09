@@ -8,6 +8,11 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"	005	04-Sep-2012	Add optional a:isKeepNoMatch argument to
+"				ingofileargs#ExpandGlobs() and
+"				ingofileargs#ExpandGlob() to allow use in
+"				commands that support creation of new files
+"				(like my custom :Split wrapper).
 "	004	27-Aug-2012	Correct argument specification for
 "				ingofileargs#ExpandGlob(); it should work on
 "				split arguments with spaces unescaped, as done
@@ -107,7 +112,7 @@ function! ingofileargs#SplitAndUnescapeArguments( fileArguments )
     return map(split(a:fileArguments, '\\\@<! '), 'ingofileargs#UnescapeArgument(v:val)')
 endfunction
 
-function! ingofileargs#ExpandGlob( fileglob )
+function! ingofileargs#ExpandGlob( fileglob, ... )
 "******************************************************************************
 "* PURPOSE:
 "   Expand any file wildcards in a:fileglob to a list of normal filespecs.
@@ -118,6 +123,9 @@ function! ingofileargs#ExpandGlob( fileglob )
 "* INPUTS:
 "   a:fileglob  File glob (already processed by
 "		ingofileargs#UnescapeArgument()).
+"   a:isKeepNoMatch Optional flag that lets globs that have no matches be kept
+"		    and returned as-is, instead of being removed. Set this when
+"		    you want to support creating new files.
 "* RETURN VALUES:
 "   List of normal filespecs; globs have been expanded. To consume this in
 "   another Vim command, use:
@@ -133,10 +141,10 @@ function! ingofileargs#ExpandGlob( fileglob )
 	return [a:fileglob]
     else
 	" Filter out directories; we're usually only interested in files.
-	return filter(split(glob(a:fileglob), "\n"), '! isdirectory(v:val)')
+	return filter(split((a:0 && a:1 ? expand(a:fileglob) : glob(a:fileglob)), "\n"), '! isdirectory(v:val)')
     endif
 endfunction
-function! ingofileargs#ExpandGlobs( fileglobs )
+function! ingofileargs#ExpandGlobs( fileglobs, ... )
 "******************************************************************************
 "* PURPOSE:
 "   Expand any file wildcards in a:fileglobs to a list of normal filespecs.
@@ -149,6 +157,9 @@ function! ingofileargs#ExpandGlobs( fileglobs )
 "		-complete=file ... <q-args> custom command), or a list of
 "		fileglobs (already processed by
 "		ingofileargs#UnescapeArgument()).
+"   a:isKeepNoMatch Optional flag that lets globs that have no matches be kept
+"		    and returned as-is, instead of being removed. Set this when
+"		    you want to support creating new files.
 "* RETURN VALUES:
 "   List of filespecs; globs have been expanded. To consume this in another Vim
 "   command, use:
@@ -158,7 +169,7 @@ function! ingofileargs#ExpandGlobs( fileglobs )
 
     let l:filespecs = []
     for l:fileglob in l:fileglobs
-	call extend(l:filespecs, ingofileargs#ExpandGlob(l:fileglob))
+	call extend(l:filespecs, call('ingofileargs#ExpandGlob', [l:fileglob] + a:000))
     endfor
     return l:filespecs
 endfunction

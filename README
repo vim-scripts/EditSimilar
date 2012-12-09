@@ -18,6 +18,13 @@ current file, one can:
 To open a set of similar files, it is possible to:
 - open all files matching a pattern in split windows
 
+RELATED WORKS
+- altr (vimscript #4202) lets you set up custom (per-filetype) rules and then
+  opens related files through two forward / backward mappings, e.g. allowing
+  you to open the autoload file from the plugin.
+- nextfile (vimscript #4698) has definitions of related files (like Rails
+  controllers, views, model, tests), and can edit a next file via a mapping.
+
 USAGE
 Substitutions: Change all occurrences via {text}={replacement} in the
 currently edited file (modeled after the Korn shell's "cd {old} {new}"
