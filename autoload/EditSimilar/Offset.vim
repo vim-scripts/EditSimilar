@@ -2,13 +2,16 @@
 "
 " DEPENDENCIES:
 "   - EditSimilar.vim autoload script
+"   - ingo/msg.vim autoload script
 "
-" Copyright: (C) 2012 Ingo Karkat
+" Copyright: (C) 2012-2013 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   2.31.004			Replace EditSimilar#ErrorMsg() with
+"				ingo#msg#ErrorMsg().
 "   2.30.002	08-Dec-2012	CHG: For a:isCreateNew when a [count] but no [!]
 "				is given, try to create an offset one more than
 "				an existing file between the current and the
@@ -93,7 +96,7 @@ function! EditSimilar#Offset#Open( opencmd, isCreateNew, isFindNextNonExisting, 
     let l:isSkipOverMissingNumbers = (a:difference == 0)
 
     if ! EditSimilar#Offset#CanApply(a:filespec)
-	call EditSimilar#ErrorMsg('No number in filespec')
+	call ingo#msg#ErrorMsg('No number in filespec')
 	return
     endif
     let l:originalNumberString = matchstr(a:filespec, s:digitPattern)

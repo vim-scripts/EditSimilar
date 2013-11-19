@@ -1,14 +1,22 @@
 " EditSimilar.vim: Commands to edit files with a similar filename.
 "
 " DEPENDENCIES:
-"   - escapings.vim autoload script.
+"   - ingo/compat.vim autoload script
+"   - ingo/msg.vim autoload script
 "
-" Copyright: (C) 2009-2012 Ingo Karkat
+" Copyright: (C) 2009-2013 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   2.31.021	08-Aug-2013	Move escapings.vim into ingo-library.
+"   2.31.020	09-Jul-2013	Also handle :echoerr errors, which don't have an
+"				E... number prepended.
+"   2.31.019	14-Jun-2013	Minor: Make substitute() robust against
+"				'ignorecase'.
+"				Replace EditSimilar#ErrorMsg() with
+"				ingo#msg#ErrorMsg().
 "   2.00.018	11-Jun-2012	FIX: a:isFilePattern argument was ignored; only
 "				perform the filespec glob expansion when it is
 "				set.
@@ -89,17 +97,10 @@
 "				script.
 "				file creation
 
-function! EditSimilar#ErrorMsg( text )
-    echohl ErrorMsg
-    let v:errmsg = a:text
-    echomsg v:errmsg
-    echohl None
-endfunction
-
 function! EditSimilar#Open( opencmd, isCreateNew, isFilePattern, originalFilespec, replacementFilespec, createNewNotAllowedMsg )
 "*******************************************************************************
 "* PURPOSE:
-"   Open a substituted filespec via the a:opencmd ex command.
+"   Open a substituted filespec via the a:opencmd Ex command.
 "* ASSUMPTIONS / PRECONDITIONS:
 "   None.
 "* EFFECTS / POSTCONDITIONS:
@@ -125,19 +126,19 @@ function! EditSimilar#Open( opencmd, isCreateNew, isFilePattern, originalFilespe
     let l:filespecToOpen = a:replacementFilespec
 
     if l:filespecToOpen ==# a:originalFilespec
-	call EditSimilar#ErrorMsg('Nothing substituted')
+	call ingo#msg#ErrorMsg('Nothing substituted')
 	return
     endif
 
     if a:isFilePattern && ! filereadable(l:filespecToOpen) && ! isdirectory(l:filespecToOpen)
 	let l:files = split(glob(l:filespecToOpen), "\n")
 	if len(l:files) > 1
-	    call EditSimilar#ErrorMsg('Too many file names')
+	    call ingo#msg#ErrorMsg('Too many file names')
 	    return
 	elseif len(l:files) == 1
 	    let l:filespecToOpen = l:files[0]
 	    if l:filespecToOpen ==# a:originalFilespec
-		call EditSimilar#ErrorMsg('Nothing substituted')
+		call ingo#msg#ErrorMsg('Nothing substituted')
 		return
 	    endif
 	endif
@@ -147,7 +148,7 @@ function! EditSimilar#Open( opencmd, isCreateNew, isFilePattern, originalFilespe
 	    " The file only exists in an unpersisted Vim buffer so far.
 	else
 	    if ! a:isCreateNew
-		call EditSimilar#ErrorMsg('Substituted file does not exist (add ! to create)' . (empty(a:createNewNotAllowedMsg) ? '' : ': ' . a:createNewNotAllowedMsg))
+		call ingo#msg#ErrorMsg('Substituted file does not exist (add ! to create)' . (empty(a:createNewNotAllowedMsg) ? '' : ': ' . a:createNewNotAllowedMsg))
 		return
 	    endif
 	endif
@@ -155,15 +156,13 @@ function! EditSimilar#Open( opencmd, isCreateNew, isFilePattern, originalFilespe
 
 "****D echomsg '****' . a:opencmd . ' ' . l:filespecToOpen | return
     try
-	execute a:opencmd escapings#fnameescape(fnamemodify(l:filespecToOpen, ':~:.'))
+	execute a:opencmd ingo#compat#fnameescape(fnamemodify(l:filespecToOpen, ':~:.'))
     catch /^Vim\%((\a\+)\)\=:E37/	" E37: No write since last change (add ! to override)
 	" The "(add ! to override)" is wrong here, we use the ! for another
 	" purpose, so filter it away.
-	call EditSimilar#ErrorMsg(substitute(substitute(v:exception, '^Vim\%((\a\+)\)\=:E37:\s*', '', ''), '\s*(.*)', '', 'g'))
-    catch /^Vim\%((\a\+)\)\=:E/
-	" v:exception contains what is normally in v:errmsg, but with extra
-	" exception source info prepended, which we cut away.
-	call EditSimilar#ErrorMsg(substitute(v:exception, '^Vim\%((\a\+)\)\=:', '', ''))
+	call ingo#msg#ErrorMsg(substitute(substitute(v:exception, '^\CVim\%((\a\+)\)\=:E37:\s*', '', ''), '\s*(.*)', '', 'g'))
+    catch /^Vim\%((\a\+)\)\=:/
+	call ingo#msg#VimExceptionMsg()
     endtry
 endfunction
 

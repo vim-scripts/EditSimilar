@@ -37,6 +37,8 @@ RELATED WORKS								     *
 - altr (vimscript #4202) lets you set up custom (per-filetype) rules and then
   opens related files through two forward / backward mappings, e.g. allowing
   you to open the autoload file from the plugin.
+- nextfile (vimscript #4698) has definitions of related files (like Rails
+  controllers, views, model, tests), and can edit a next file via a mapping.
 
 ==============================================================================
 USAGE							   *EditSimilar-usage*
@@ -90,7 +92,7 @@ simpler file wildcards).
 <			Both {text} and {replacement} can include the usual
 			file wildcards (?, *, ** and [...], cp. |file-pattern|)
 			to save typing; however, the file-pattern must resolve
-			to exactly one filespec, as the underlying ex commands
+			to exactly one filespec, as the underlying Ex commands
 			can only open a single file. >
 			    /etc/test/superapp/test001.cfg
 			    :EditSubstitute test=p* test=p*
@@ -241,18 +243,19 @@ This is an enhanced version of the built-in: >
 			Edits a file with the current file's path and name, but
 			replaces the file extension with the passed one. The
 			leading '.' in {extension} is optional; use either
-			.txt or txt. To replace (or remove) multiple
-			extensions, prepend a . for each one: >
+			.txt or txt. To get a file without an extension, use . >
+			    :EditRoot .
+			    myfile
+<			To replace (or remove) multiple extensions, prepend a
+			. for each one: >
 			    myfile.txt.bak
 			    :EditRoot ..cpp
 			    myfile.cpp
-			    :EditRoot .
-			    myfile
 <
 			The {extension} can include the usual file wildcards
 			(?, *, cp. |file-pattern|) to save typing; however, the
 			file-pattern must resolve to exactly one existing
-			file, as the underlying ex commands can only open one
+			file, as the underlying Ex commands can only open one
 			single file.
 
 			Add [!] to create a new file when the substituted file
@@ -303,7 +306,9 @@ To uninstall, use the |:RmVimball| command.
 DEPENDENCIES					    *EditSimilar-dependencies*
 
 - Requires Vim 7.0 or higher.
-- Optional, recommended: cmdalias plugin (vimscript #746).
+- Requires the |ingo-library.vim| plugin (vimscript #4433), version 1.014 or
+  higher.
+- Optional, recommended: cmdalias plugin (vimscript #746)
 
 ==============================================================================
 CONFIGURATION					   *EditSimilar-configuration*
@@ -338,6 +343,8 @@ appropriate split modifier command via: >
     let g:EditSimilar_vsplitmode = 'rightbelow'
 <
 ==============================================================================
+LIMITATIONS					     *EditSimilar-limitations*
+
 KNOWN PROBLEMS					  *EditSimilar-known-problems*
 
 TODO							    *EditSimilar-todo*
@@ -349,6 +356,14 @@ IDEAS							    *EditSimilar-ideas*
 
 ==============================================================================
 HISTORY							 *EditSimilar-history*
+
+2.31	19-Nov-2013
+- Minor: Also handle :echoerr errors, which don't have an E... number
+  prepended.
+- FIX: Non-any completion can yield duplicate roots, too (e.g. foobar.orig.txt
+  + foobar.txt).
+- Add dependency to ingo-library (vimscript #4433). *** You need to separately
+  install ingo-library (vimscript #4433) version 1.014 (or higher)! ***
 
 2.30	09-Dec-2012
 CHG: For :FilePlus, :WritePlus, :SavePlus, when a [count] but no [!] is given,
@@ -466,8 +481,8 @@ Initial implementation sketch of :Sppat and :Vsppat commands.
 Initial implementation sketch of :Sproot command.
 
 ==============================================================================
-Copyright: (C) 2009-2012 Ingo Karkat
-The VIM LICENSE applies to this script; see |copyright|.
+Copyright: (C) 2009-2013 Ingo Karkat
+The VIM LICENSE applies to this plugin; see |copyright|.
 
 Maintainer:	Ingo Karkat <ingo@karkat.de>
 ==============================================================================
