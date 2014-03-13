@@ -32,6 +32,12 @@ To quickly edit another file based on the current file, one can:
 To open a set of similar files, it is possible to:
 - open all files matching a pattern in split windows	 |EditSimilar-pattern|
 
+SEE ALSO								     *
+
+- The |PatternsOnText.vim| plugin (vimscript #4602) applies the
+  {text}={replacement} of :EditSubstitute via |:substitute| to the text in the
+  buffer with |:SubstituteWildcard|.
+
 RELATED WORKS								     *
 
 - altr (vimscript #4202) lets you set up custom (per-filetype) rules and then
@@ -275,8 +281,9 @@ This is an enhanced version of the built-in: >
 
 ------------------------------------------------------------------------------
 							 *EditSimilar-pattern*
-Pattern: Open all files matching the pattern in split windows, similar to how
-|:argadd|{name} adds all matching files to the argument list.
+Pattern: Open all files matching the |file-pattern| (actually a file glob) in
+split windows, similar to how |:argadd|{name} adds all matching files to the
+argument list.
 
 							       *:SplitPattern*
 :SplitPattern [++opt] [+cmd] {file-pattern} [{file-pattern} ...]
@@ -306,7 +313,7 @@ To uninstall, use the |:RmVimball| command.
 DEPENDENCIES					    *EditSimilar-dependencies*
 
 - Requires Vim 7.0 or higher.
-- Requires the |ingo-library.vim| plugin (vimscript #4433), version 1.014 or
+- Requires the |ingo-library.vim| plugin (vimscript #4433), version 1.017 or
   higher.
 - Optional, recommended: cmdalias plugin (vimscript #746)
 
@@ -356,6 +363,16 @@ IDEAS							    *EditSimilar-ideas*
 
 ==============================================================================
 HISTORY							 *EditSimilar-history*
+
+2.32	13-Mar-2014
+- Handle dot prefixes (e.g. ".txt") in root completion.
+- Also offer multi-extension roots (e.g. ".orig.txt") in root completion, and
+  correctly handle existing roots (e.g. ".orig.t").
+- Add workaround for editing via :pedit, which uses the CWD of existing
+  preview window instead of the CWD of the current window; leading to wrong
+  not-existing files being opened when :set autochdir. Work around this by
+  always passing a full absolute filespec. *** You need to update to
+  ingo-library (vimscript #4433) version 1.017! ***
 
 2.31	19-Nov-2013
 - Minor: Also handle :echoerr errors, which don't have an E... number
@@ -481,7 +498,7 @@ Initial implementation sketch of :Sppat and :Vsppat commands.
 Initial implementation sketch of :Sproot command.
 
 ==============================================================================
-Copyright: (C) 2009-2013 Ingo Karkat
+Copyright: (C) 2009-2014 Ingo Karkat
 The VIM LICENSE applies to this plugin; see |copyright|.
 
 Maintainer:	Ingo Karkat <ingo@karkat.de>

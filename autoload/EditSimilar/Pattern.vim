@@ -6,12 +6,16 @@
 "   - ingo/compat.vim autoload script
 "   - ingo/escape/file.vim autoload script
 "
-" Copyright: (C) 2012-2013 Ingo Karkat
+" Copyright: (C) 2012-2014 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   2.32.007	11-Feb-2014	New
+"				ingo#cmdargs#file#FilterFileOptionsAndCommands()
+"				API returns fileOptionsAndCommands as a List to
+"				handle multiple ones.
 "   2.31.006	08-Aug-2013	Move escapings.vim into ingo-library.
 "   2.31.005	14-Jun-2013	Replace EditSimilar#ErrorMsg() with
 "				ingo#msg#ErrorMsg().
@@ -39,6 +43,7 @@ function! EditSimilar#Pattern#Split( splitcmd, filePatternsString )
     " Expand all files to their absolute path, because the CWD may change when a
     " file is opened (e.g. due to autocmds or :set autochdir).
     let l:filespecs = map(ingo#cmdargs#glob#Expand(l:filePatterns), "fnamemodify(v:val, ':p')")
+    let l:exFileOptionsAndCommands = join(map(l:fileOptionsAndCommands, "escape(v:val, '\\ ')"))
 
     for l:filespec in map(l:filespecs, 'fnamemodify(v:val, ":p")')
 	if bufwinnr(ingo#escape#file#bufnameescape(l:filespec)) == -1
@@ -49,7 +54,7 @@ function! EditSimilar#Pattern#Split( splitcmd, filePatternsString )
 	    " :belowright.
 	    let l:splitWhere = (l:openCnt == 0 ? '' : 'belowright')
 
-	    execute l:splitWhere a:splitcmd escape(l:fileOptionsAndCommands, '\ ') ingo#compat#fnameescape(fnamemodify(l:filespec, ':~:.'))
+	    execute l:splitWhere a:splitcmd l:exFileOptionsAndCommands ingo#compat#fnameescape(fnamemodify(l:filespec, ':~:.'))
 	    let l:openCnt += 1
 	endif
     endfor

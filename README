@@ -18,6 +18,11 @@ current file, one can:
 To open a set of similar files, it is possible to:
 - open all files matching a pattern in split windows
 
+SEE ALSO
+- The PatternsOnText.vim plugin (vimscript #4602) applies the
+  {text}={replacement} of :EditSubstitute via :substitute to the text in the
+  buffer with :SubstituteWildcard.
+
 RELATED WORKS
 - altr (vimscript #4202) lets you set up custom (per-filetype) rules and then
   opens related files through two forward / backward mappings, e.g. allowing

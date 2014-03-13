@@ -5,6 +5,7 @@
 "   - EditSimilar.vim autoload script
 "   - ingo/collections.vim autoload script
 "   - ingo/fs/path.vim autoload script
+"   - ingo/str.vim autoload script
 "
 " Copyright: (C) 2012-2013 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
@@ -12,6 +13,11 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   2.32.007	23-Dec-2013	Handle dot prefixes (e.g. ".txt") in root
+"				completion.
+"				Also offer multi-extension roots (e.g.
+"				".orig.txt") in root completion, and correctly
+"				handle existing roots (e.g. ".orig.t").
 "   2.31.006	13-Jul-2013	FIX: Non-any completion can yield duplicate
 "				roots, too (e.g. foobar.orig.txt + foobar.txt).
 "				Use (sorted) unique function already in
@@ -42,29 +48,44 @@ function! EditSimilar#Root#Open( opencmd, isCreateNew, filespec, newExtension )
     call EditSimilar#Open( a:opencmd, a:isCreateNew, 1, a:filespec, l:newFilespec, fnamemodify(l:newFilespec, ':t'))
 endfunction
 
-function! s:Complete( ArgLead, filenameGlob )
-    return ingo#collections#UniqueSorted(sort(
-    \	filter(
-    \	    map(
-    \		split(
-    \		    glob(a:filenameGlob . '.' . a:ArgLead . '*'),
-    \		    "\n"
-    \		),
-    \		'fnamemodify(v:val, ":e")'
-    \	    ),
-    \	    'v:val !=# ' . string(expand('%:e'))
-    \	)
+function! s:Complete( dots, argLead, filenameGlob )
+    let l:roots = ingo#collections#UniqueSorted(sort(
+    \   filter(
+    \       ingo#collections#Flatten1(map(
+    \           split(
+    \               glob(a:filenameGlob . '.' . a:argLead . '*'),
+    \               "\n"
+    \           ),
+    \           '[' .
+    \               'fnamemodify(v:val, ":e"),' .
+    \               'fnamemodify(v:val, ":e:e"),' .
+    \               'fnamemodify(v:val, ":e:e:e")' .
+    \           ']'
+    \       )),
+    \       'ingo#str#StartsWith(v:val, a:argLead)' .
+    \           ' && v:val !=# ' . string(expand('%:e')) .
+    \           ' && v:val !=# ' . string(expand('%:e:e')) .
+    \           ' && v:val !=# ' . string(expand('%:e:e:e'))
+    \   )
     \))
     " Note: No need for fnameescape(); the Root commands don't support Vim
     " special characters like % and # and therefore do the escaping themselves.
+
+    return map(
+    \   l:roots,
+    \   'a:dots . v:val'
+    \)
 endfunction
 
 function! EditSimilar#Root#Complete( ArgLead, CmdLine, CursorPos )
-    return s:Complete(a:ArgLead, expand('%:r'))
+    let [l:dots, l:argLead] = matchlist(a:ArgLead, '^\(\.*\)\(.*\)$')[1:2]
+    let l:baseFilename = expand('%' . repeat(':r', max([1, len(l:dots)])))
+    return s:Complete(l:dots, l:argLead, l:baseFilename)
 endfunction
 
 function! EditSimilar#Root#CompleteAny( ArgLead, CmdLine, CursorPos )
-    return s:Complete(a:ArgLead, ingo#fs#path#Combine(expand('%:h'), '*'))
+    let [l:dots, l:argLead] = matchlist(a:ArgLead, '^\(\.*\)\(.*\)$')[1:2]
+    return s:Complete(l:dots, l:argLead, ingo#fs#path#Combine(expand('%:h'), '*'))
 endfunction
 
 let &cpo = s:save_cpo

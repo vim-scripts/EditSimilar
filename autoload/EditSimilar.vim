@@ -4,12 +4,20 @@
 "   - ingo/compat.vim autoload script
 "   - ingo/msg.vim autoload script
 "
-" Copyright: (C) 2009-2013 Ingo Karkat
+" Copyright: (C) 2009-2014 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   2.32.023	17-Jan-2014	Add workaround for editing via :pedit, which
+"				uses the CWD of existing preview window instead
+"				of the CWD of the current window; leading to
+"				wrong not-existing files being opened when :set
+"				autochdir. Work around this by always passing a
+"				full absolute filespec. Encountered this in my
+"				MessageRecall.vim plugin, when doing <C-p> from
+"				a modified VcsMessageRecall buffer.
 "   2.31.021	08-Aug-2013	Move escapings.vim into ingo-library.
 "   2.31.020	09-Jul-2013	Also handle :echoerr errors, which don't have an
 "				E... number prepended.
@@ -155,8 +163,16 @@ function! EditSimilar#Open( opencmd, isCreateNew, isFilePattern, originalFilespe
     endif
 
 "****D echomsg '****' . a:opencmd . ' ' . l:filespecToOpen | return
+    if exists('+autochdir') && &autochdir && a:opencmd =~# '^pedit\>'
+	" XXX: :pedit uses the CWD of existing preview window instead of the CWD
+	" of the current window; leading to wrong not-existing files being
+	" opened. Work around this by always passing a full absolute filespec.
+	let l:filespec = fnamemodify(l:filespecToOpen, ':p')
+    else
+	let l:filespec = fnamemodify(l:filespecToOpen, ':~:.')
+    endif
     try
-	execute a:opencmd ingo#compat#fnameescape(fnamemodify(l:filespecToOpen, ':~:.'))
+	execute a:opencmd ingo#compat#fnameescape(l:filespec)
     catch /^Vim\%((\a\+)\)\=:E37/	" E37: No write since last change (add ! to override)
 	" The "(add ! to override)" is wrong here, we use the ! for another
 	" purpose, so filter it away.
