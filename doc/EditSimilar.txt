@@ -67,6 +67,8 @@ simpler file wildcards).
 :VSplitSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
 							     *SViewSubstitute*
 :SViewSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
+							 *DiffSplitSubstitute*
+:DiffSplitSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
 			Replaces all literal occurrences of {text} in the
 			currently edited file with {replacement}, and opens the
 			resulting file. If all substitutions can be made on the
@@ -117,6 +119,12 @@ simpler file wildcards).
 			edited file with {replacement}, and sets / writes the
 			resulting file. Wildcards can be used here, too.
 			The [!] is needed to overwrite an existing file.
+							  *:BDeleteSubstitute*
+:BDeleteSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
+			Replaces all occurrences of {text} in the currently
+			edited file with {replacement}, and deletes the
+			resulting buffer. Wildcards can be used here, too.
+			The [!] is needed to delete a changed buffer.
 
 
 ------------------------------------------------------------------------------
@@ -138,6 +146,9 @@ edited file.
 						    *:SViewPlus* *:SViewMinus*
 :[N]SViewPlus[!] [N]
 :[N]SViewMinus[!] [N]
+					    *:DiffSplitPlus* *:DiffSplitMinus*
+:[N]DiffSplitPlus[!] [N]
+:[N]DiffSplitMinus[!] [N]
 			Increases / decreases the last number found inside the
 			full absolute filespec of the currently edited file by
 			[N]. This works best on fixed-width numbers which are
@@ -193,6 +204,12 @@ edited file.
 			:WritePlus!    -> test008.txt
 			:99WritePlus   -> test014.txt [New File]
 			:99WritePlus!  -> test106.txt [New File]
+<						*:BDeleteMinus* *:BDeletePlus*
+:[N]BDeletePlus[!] [N]
+:[N]BDeleteMinus[!] [N]
+			Increases / decreases the last number found inside the
+			full absolute filespec of the currently edited file by
+			[N] and deletes that buffer.
 
 
 ------------------------------------------------------------------------------
@@ -214,6 +231,9 @@ succeeding / preceding file entries.
 						 *:SViewNext* *:SViewPrevious*
 :[N]SViewNext [{filelist}]
 :[N]SViewPrevious [{filelist}]
+					 *:DiffSplitNext* *:DiffSplitPrevious*
+:[N]DiffSplitNext [{filelist}]
+:[N]DiffSplitPrevious [{filelist}]
 			From the files in the same directory as the current
 			file, go to a succeeding / preceding one. If
 			{filelist} is specified (typically not via separate
@@ -228,6 +248,11 @@ succeeding / preceding file entries.
 			resolution of the glob, as elsewhere in Vim.
 			The current buffer must be contained in {filelist} for
 			the commands to work.
+
+					     *:BDeleteNext* *:BDeletePrevious*
+:[N]BDeleteNext [{filelist}]
+:[N]BDeletePrevious [{filelist}]
+			Delete a succeeding / preceding buffer.
 
 
 ------------------------------------------------------------------------------
@@ -245,6 +270,8 @@ This is an enhanced version of the built-in: >
 :VSplitRoot[!] {extension}
 								  *:SViewRoot*
 :SViewRoot[!] {extension}
+							      *:DiffSplitRoot*
+:DiffSplitRoot[!] {extension}
 			Switches the current file's extension:
 			Edits a file with the current file's path and name, but
 			replaces the file extension with the passed one. The
@@ -277,6 +304,9 @@ This is an enhanced version of the built-in: >
 			name, but replaces the file extension with the passed
 			one.
 			The [!] is needed to overwrite an existing file.
+								*:BDeleteRoot*
+:BDeleteRoot[!] {extension}
+			Deletes a buffer with a different file extension.
 
 
 ------------------------------------------------------------------------------
@@ -291,6 +321,8 @@ argument list.
 :VSplitPattern [++opt] [+cmd] {file-pattern} [{file-pattern} ...]
 							       *:SViewPattern*
 :SViewPattern [++opt] [+cmd] {file-pattern} [{file-pattern} ...]
+							   *:DiffSplitPattern*
+:DiffSplitPattern [++opt] [+cmd] {file-pattern} [{file-pattern} ...]
 			Open all files matching {file-pattern} in split windows.
 			If one of the files is already open, no second split is
 			generated.
@@ -298,6 +330,28 @@ argument list.
 			(?, *, cp. |file-pattern|).
 			Makes all windows the same size if more than one has
 			been opened.
+							     *:BDeletePattern*
+:BDeletePattern {file-pattern} [{file-pattern} ...]
+			Delete all buffers matching {file-pattern}.
+
+------------------------------------------------------------------------------
+					     *EditSimilar-supporting-commands*
+							   *:SaveOverBufferAs*
+:SaveOverBufferAs[!] [++opt] {file}
+			Like |:saveas|, but with [!] also suppresses the
+			|E139|: "File is loaded in another buffer" error by
+			forcibly deleting the buffer (any unpersisted changes
+			there will be lost). With this plugin, one often
+			(re-)updates similar files that are already loaded in
+			Vim. This command (which is also used in the :Save...
+			commands) avoids the need to issue a separate >
+			    :BDelete... | Save...
+<							    *:WriteOverBuffer*
+:[range]WriteOverBuffer[!] [++opt] {file}
+			Like |:write|, but with [!] also suppresses the
+			|E139|: "File is loaded in another buffer" error by
+			forcibly deleting the buffer (any unpersisted changes
+			there will be lost). Used in the :Write... commands.
 
 ==============================================================================
 INSTALLATION					    *EditSimilar-installation*
@@ -313,7 +367,7 @@ To uninstall, use the |:RmVimball| command.
 DEPENDENCIES					    *EditSimilar-dependencies*
 
 - Requires Vim 7.0 or higher.
-- Requires the |ingo-library.vim| plugin (vimscript #4433), version 1.017 or
+- Requires the |ingo-library.vim| plugin (vimscript #4433), version 1.018 or
   higher.
 - Optional, recommended: cmdalias plugin (vimscript #746)
 
@@ -343,11 +397,12 @@ lowercase commands) is defining short aliases through the cmdalias plugin
     Alias spp SplitPattern
 <
 			  *g:EditSimilar_splitmode* *g:EditSimilar_vsplitmode*
-All :Split..., :VSplit... and :SView commands obey the default 'splitbelow'
-and 'splitright' settings. If you want different behavior, you can insert the
-appropriate split modifier command via: >
+All :Split..., :VSplit..., :SView, and :DiffSplit... commands obey the default
+'splitbelow' and 'splitright' settings. If you want different behavior, you
+can insert the appropriate split modifier command via: >
     let g:EditSimilar_splitmode = 'rightbelow'
     let g:EditSimilar_vsplitmode = 'rightbelow'
+    let g:EditSimilar_diffsplitmode = 'rightbelow'
 <
 ==============================================================================
 LIMITATIONS					     *EditSimilar-limitations*
@@ -363,6 +418,20 @@ IDEAS							    *EditSimilar-ideas*
 
 ==============================================================================
 HISTORY							 *EditSimilar-history*
+
+2.40	16-Apr-2014
+- Add :BDelete... comands, which are especially useful for when "E139: File
+  is loaded in another buffer" is given.
+- Add :DiffSplit... comands.
+- For next files, escape the dirspec for wildcards to handle peculiar
+  directories.
+- Allow to :write partial buffer contents by defining -range=% on :Write...
+  commands that do not yet use the count.
+- Add :SaveOverBufferAs and :WriteOverBuffer commands (that with [!] also
+  :bdelete an existing buffer with the same name) and use those in the
+  :Save... and :Write... commands.
+- All commands now properly abort on error.
+  *** You need to update to ingo-library (vimscript #4433) version 1.018! ***
 
 2.32	13-Mar-2014
 - Handle dot prefixes (e.g. ".txt") in root completion.

@@ -5,13 +5,21 @@
 "   - EditSimilar/Offset.vim autoload script
 "   - EditSimilar/Root.vim autoload script
 "   - EditSimilar/Substitute.vim autoload script
+"   - ingo/err.vim autoload script
 "
-" Copyright: (C) 2011-2012 Ingo Karkat
+" Copyright: (C) 2011-2014 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   2.40.010	24-Mar-2014	Drop -count and -count command options passed in
+"				a:commandPrefix for the *Plus, *Minus, *Next,
+"				*Previous commands that use a <count>
+"				themselves. This allows to define the other
+"				commands (e.g. *Substitute) in a way that allows
+"				a range, e.g. for :write.
+"   2.40.009	23-Mar-2014	Abort on errors.
 "   2.30.008	09-Dec-2012	Do not require a:hasBang; instead pass the -bang
 "				only for the *Plus and *Minus commands.
 "   2.30.007	08-Dec-2012	CHG: For *Plus and *Minus commands with
@@ -82,27 +90,28 @@ function! EditSimilar#CommandBuilder#SimilarFileOperations( commandPrefix, fileC
     let l:options = (a:0 ? a:1 : {})
     let l:omitOperationsWorkingOnlyOnExistingFiles = get(l:options, 'omitOperationsWorkingOnlyOnExistingFiles', 0)
     let l:completeAnyRoot = get(l:options, 'completeAnyRoot', 0)
+    let l:commandPrefixWithoutRange = substitute(a:commandPrefix, '\%(^\|\s\+\)-\%(count\|range\)\%(=\S\+\)\?', '', '')
 
-    execute printf('command! -bar %s -nargs=+ %sSubstitute call EditSimilar#Substitute#Open(%s, %s, expand("%%:p"), <f-args>)',
+    execute printf('command! -bar %s -nargs=+ %sSubstitute if ! EditSimilar#Substitute#Open(%s, %s, expand("%%:p"), <f-args>) | echoerr ingo#err#Get() | endif',
     \   l:bangArg, a:commandPrefix, string(a:fileCommand), a:createNew)
-    execute printf('command! -bar %s -count=0 %sPlus       call EditSimilar#Offset#Open(%s, %s, %s, expand("%%:p"), <count>,  1)',
+    execute printf('command! -bar %s -count=0 %sPlus       if ! EditSimilar#Offset#Open(%s, %s, %s, expand("%%:p"), <count>,  1) | echoerr ingo#err#Get() | endif',
     \   (l:omitOperationsWorkingOnlyOnExistingFiles && ! a:hasBang ? '-bang' : l:bangArg),
-    \   a:commandPrefix, string(a:fileCommand), a:createNew,
+    \   l:commandPrefixWithoutRange, string(a:fileCommand), a:createNew,
     \   (l:omitOperationsWorkingOnlyOnExistingFiles ? '<bang>1' : 0)
     \)
-    execute printf('command! -bar %s -count=0 %sMinus      call EditSimilar#Offset#Open(%s, %s, %s, expand("%%:p"), <count>,  -1)',
+    execute printf('command! -bar %s -count=0 %sMinus      if ! EditSimilar#Offset#Open(%s, %s, %s, expand("%%:p"), <count>,  -1) | echoerr ingo#err#Get() | endif',
     \   (l:omitOperationsWorkingOnlyOnExistingFiles && ! a:hasBang ? '-bang' : l:bangArg),
-    \   a:commandPrefix, string(a:fileCommand), a:createNew,
+    \   l:commandPrefixWithoutRange, string(a:fileCommand), a:createNew,
     \   (l:omitOperationsWorkingOnlyOnExistingFiles ? '<bang>1' : 0)
     \)
     if ! l:omitOperationsWorkingOnlyOnExistingFiles
-	execute printf('command! -bar %s -range=0 -nargs=* -complete=file %sNext       call EditSimilar#Next#Open(%s, %s, expand("%%:p"), <count>,  1, <q-args>)',
-	\   l:bangArg, a:commandPrefix, string(a:fileCommand), a:createNew)
-	execute printf('command! -bar %s -range=0 -nargs=* -complete=file %sPrevious   call EditSimilar#Next#Open(%s, %s, expand("%%:p"), <count>,  -1, <q-args>)',
-	\   l:bangArg, a:commandPrefix, string(a:fileCommand), a:createNew)
+	execute printf('command! -bar %s -range=0 -nargs=* -complete=file %sNext       if ! EditSimilar#Next#Open(%s, %s, expand("%%:p"), <count>,  1, <q-args>) | echoerr ingo#err#Get() | endif',
+	\   l:bangArg, l:commandPrefixWithoutRange, string(a:fileCommand), a:createNew)
+	execute printf('command! -bar %s -range=0 -nargs=* -complete=file %sPrevious   if ! EditSimilar#Next#Open(%s, %s, expand("%%:p"), <count>,  -1, <q-args>) | echoerr ingo#err#Get() | endif',
+	\   l:bangArg, l:commandPrefixWithoutRange, string(a:fileCommand), a:createNew)
     endif
     execute printf('command! -bar %s -nargs=1 -complete=customlist,%s ' .
-    \                                        '%sRoot       call EditSimilar#Root#Open(%s, %s, expand("%%"), <f-args>)',
+    \                                        '%sRoot       if ! EditSimilar#Root#Open(%s, %s, expand("%%"), <f-args>) | echoerr ingo#err#Get() | endif',
     \   l:bangArg,
     \   (l:completeAnyRoot ? 'EditSimilar#Root#CompleteAny' : 'EditSimilar#Root#Complete'),
     \   a:commandPrefix,

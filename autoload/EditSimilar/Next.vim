@@ -3,14 +3,16 @@
 " DEPENDENCIES:
 "   - EditSimilar.vim autoload script
 "   - ingo/fs/path.vim autoload script
-"   - ingo/msg.vim autoload script
+"   - ingo/err.vim autoload script
 "
-" Copyright: (C) 2012-2013 Ingo Karkat
+" Copyright: (C) 2012-2014 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   2.40.008	23-Mar-2014	Return success status to abort on errors.
+"   2.40.007	21-Mar-2014	Escape the dirspec for wildcards.
 "   2.31.006	26-Jun-2013	Replace duplicated functions with
 "				ingo/fs/path.vim.
 "   2.31.005	14-Jun-2013	Replace EditSimilar#ErrorMsg() with
@@ -27,11 +29,12 @@ set cpo&vim
 
 " Next / Previous commands.
 function! EditSimilar#Next#GetDirectoryEntries( dirSpec, fileGlobs )
+    let l:dirSpec = ingo#escape#file#wildcardescape(a:dirSpec)
     let l:files = []
 
     " Get list of files, apply 'wildignore'.
     for l:fileGlob in a:fileGlobs
-	let l:files += split(glob(ingo#fs#path#Combine(a:dirSpec, l:fileGlob)), "\n")
+	let l:files += split(glob(ingo#fs#path#Combine(l:dirSpec, l:fileGlob)), "\n")
 	" Note: No need to normalize here; glob() always returns results with
 	" the default path separator.
     endfor
@@ -42,7 +45,7 @@ function! EditSimilar#Next#GetDirectoryEntries( dirSpec, fileGlobs )
     return l:files
 endfunction
 function! s:ErrorMsg( text, fileGlobsString, ... )
-    call ingo#msg#ErrorMsg(a:text . (empty(a:fileGlobsString) ? '' : ' matching ' . a:fileGlobsString) . (a:0 ? ': ' . a:1 : ''))
+    call ingo#err#Set(a:text . (empty(a:fileGlobsString) ? '' : ' matching ' . a:fileGlobsString) . (a:0 ? ': ' . a:1 : ''))
 endfunction
 function! EditSimilar#Next#Open( opencmd, isCreateNew, filespec, difference, direction, fileGlobsString )
     " To be able to find the current filespec in the glob results with a simple
@@ -61,16 +64,16 @@ function! EditSimilar#Next#Open( opencmd, isCreateNew, filespec, difference, dir
 	else
 	    call s:ErrorMsg('Cannot locate current file', a:fileGlobsString, a:filespec)
 	endif
-	return
+	return 0
     elseif l:currentIndex == 0 && len(l:files) == 1
 	call s:ErrorMsg('This is the sole file in the directory', a:fileGlobsString)
-	return
+	return 0
     elseif l:currentIndex == 0 && a:direction == -1
 	call s:ErrorMsg('No previous file', a:fileGlobsString)
-	return
+	return 0
     elseif l:currentIndex == (len(l:files) - 1) && a:direction == 1
 	call s:ErrorMsg('No next file', a:fileGlobsString)
-	return
+	return 0
     endif
 
     " A passed difference of 0 means that no [count] was specified and thus
@@ -88,7 +91,7 @@ function! EditSimilar#Next#Open( opencmd, isCreateNew, filespec, difference, dir
 
     " Note: The a:isCreateNew flag has no meaning here, as all replacement
     " files do already exist.
-    call EditSimilar#Open(a:opencmd, 0, 0, a:filespec, l:replacementFilespec, '')
+    return EditSimilar#Open(a:opencmd, 0, 0, a:filespec, l:replacementFilespec, '')
 endfunction
 
 let &cpo = s:save_cpo

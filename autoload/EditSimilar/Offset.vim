@@ -2,14 +2,15 @@
 "
 " DEPENDENCIES:
 "   - EditSimilar.vim autoload script
-"   - ingo/msg.vim autoload script
+"   - ingo/err.vim autoload script
 "
-" Copyright: (C) 2012-2013 Ingo Karkat
+" Copyright: (C) 2012-2014 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   2.40.005	23-Mar-2014	Return success status to abort on errors.
 "   2.31.004			Replace EditSimilar#ErrorMsg() with
 "				ingo#msg#ErrorMsg().
 "   2.30.002	08-Dec-2012	CHG: For a:isCreateNew when a [count] but no [!]
@@ -96,8 +97,8 @@ function! EditSimilar#Offset#Open( opencmd, isCreateNew, isFindNextNonExisting, 
     let l:isSkipOverMissingNumbers = (a:difference == 0)
 
     if ! EditSimilar#Offset#CanApply(a:filespec)
-	call ingo#msg#ErrorMsg('No number in filespec')
-	return
+	call ingo#err#Set('No number in filespec')
+	return 0
     endif
     let l:originalNumberString = matchstr(a:filespec, s:digitPattern)
     if empty(l:originalNumberString) | throw 'ASSERT: Extracted number.' | endif
@@ -161,7 +162,7 @@ function! EditSimilar#Offset#Open( opencmd, isCreateNew, isFindNextNonExisting, 
 	endif
     endif
 
-    call EditSimilar#Open(a:opencmd, a:isCreateNew, 0, a:filespec, l:replacement, l:replacementMsg . ' (from #' . l:originalNumberString . ')')
+    return EditSimilar#Open(a:opencmd, a:isCreateNew, 0, a:filespec, l:replacement, l:replacementMsg . ' (from #' . l:originalNumberString . ')')
 endfunction
 
 " vim: set ts=8 sts=4 sw=4 noexpandtab ff=unix fdm=syntax :

@@ -44,9 +44,11 @@ simpler file wildcards).
 :SplitSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
 :VSplitSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
 :SViewSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
+:DiffSplitSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
 :FileSubstitute {text}={replacement} [{text}={replacement} [...]]
 :WriteSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
 :SaveSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
+:BDeleteSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
 
 Plus / Minus: Add an offset to the last (decimal) number in the currently
 edited file.
@@ -61,7 +63,9 @@ succeeding / preceding file entries.
 :...
 
 Root: Change the file extension in the currently edited file.
-This is an enhanced version of the built-in :edit %:r.{extension}
+This is an enhanced version of the built-in:
+    :edit %:r.{extension}
+
 :EditRoot[!] {extension}
 :...
 

@@ -3,7 +3,7 @@
 " DEPENDENCIES:
 "   - EditSimilar.vim autoload script
 "   - ingo/fs/path.vim autoload script
-"   - ingo/msg.vim autoload script
+"   - ingo/err.vim autoload script
 "   - ingo/regexp/fromwildcard.vim autoload script
 "   - ingo/subst/pairs.vim autoload script
 "
@@ -13,6 +13,7 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   2.40.008	23-Mar-2014	Return success status to abort on errors.
 "   2.32.007	16-Jan-2014	Move s:Substitute() to
 "				ingo#subst#pairs#Substitute() for reuse.
 "   2.31.006	26-Oct-2013	Factor out
@@ -47,9 +48,9 @@ function! EditSimilar#Substitute#Open( opencmd, isCreateNew, filespec, ... )
 		let [l:replacementFilespec, l:failedPatterns] = ingo#subst#pairs#Substitute(l:replacementFilespec, filter(l:failedPatterns, 'ingo#regexp#fromwildcard#IsWildcardPathPattern(v:val)'))
 	    endif
 	endif
-	call EditSimilar#Open(a:opencmd, a:isCreateNew, 1, l:originalFilespec, l:replacementFilespec, l:replacementMsg)
+	return EditSimilar#Open(a:opencmd, a:isCreateNew, 1, l:originalFilespec, l:replacementFilespec, l:replacementMsg)
     catch /^Substitute:/
-	call ingo#msg#CustomExceptionMsg('Substitute')
+	call ingo#err#SetCustomException('Substitute')
     endtry
 endfunction
 

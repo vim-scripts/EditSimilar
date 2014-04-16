@@ -2,7 +2,7 @@
 "
 " DEPENDENCIES:
 "   - ingo/compat.vim autoload script
-"   - ingo/msg.vim autoload script
+"   - ingo/err.vim autoload script
 "
 " Copyright: (C) 2009-2014 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
@@ -10,6 +10,7 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   2.40.024	23-Mar-2014	Return success status to abort on errors.
 "   2.32.023	17-Jan-2014	Add workaround for editing via :pedit, which
 "				uses the CWD of existing preview window instead
 "				of the CWD of the current window; leading to
@@ -134,20 +135,20 @@ function! EditSimilar#Open( opencmd, isCreateNew, isFilePattern, originalFilespe
     let l:filespecToOpen = a:replacementFilespec
 
     if l:filespecToOpen ==# a:originalFilespec
-	call ingo#msg#ErrorMsg('Nothing substituted')
-	return
+	call ingo#err#Set('Nothing substituted')
+	return 0
     endif
 
     if a:isFilePattern && ! filereadable(l:filespecToOpen) && ! isdirectory(l:filespecToOpen)
 	let l:files = split(glob(l:filespecToOpen), "\n")
 	if len(l:files) > 1
-	    call ingo#msg#ErrorMsg('Too many file names')
-	    return
+	    call ingo#err#Set('Too many file names')
+	    return 0
 	elseif len(l:files) == 1
 	    let l:filespecToOpen = l:files[0]
 	    if l:filespecToOpen ==# a:originalFilespec
-		call ingo#msg#ErrorMsg('Nothing substituted')
-		return
+		call ingo#err#Set('Nothing substituted')
+		return 0
 	    endif
 	endif
     endif
@@ -156,8 +157,8 @@ function! EditSimilar#Open( opencmd, isCreateNew, isFilePattern, originalFilespe
 	    " The file only exists in an unpersisted Vim buffer so far.
 	else
 	    if ! a:isCreateNew
-		call ingo#msg#ErrorMsg('Substituted file does not exist (add ! to create)' . (empty(a:createNewNotAllowedMsg) ? '' : ': ' . a:createNewNotAllowedMsg))
-		return
+		call ingo#err#Set('Substituted file does not exist (add ! to create)' . (empty(a:createNewNotAllowedMsg) ? '' : ': ' . a:createNewNotAllowedMsg))
+		return 0
 	    endif
 	endif
     endif
@@ -173,12 +174,15 @@ function! EditSimilar#Open( opencmd, isCreateNew, isFilePattern, originalFilespe
     endif
     try
 	execute a:opencmd ingo#compat#fnameescape(l:filespec)
+	return 1
     catch /^Vim\%((\a\+)\)\=:E37/	" E37: No write since last change (add ! to override)
 	" The "(add ! to override)" is wrong here, we use the ! for another
 	" purpose, so filter it away.
-	call ingo#msg#ErrorMsg(substitute(substitute(v:exception, '^\CVim\%((\a\+)\)\=:E37:\s*', '', ''), '\s*(.*)', '', 'g'))
+	call ingo#err#Set(substitute(substitute(v:exception, '^\CVim\%((\a\+)\)\=:E37:\s*', '', ''), '\s*(.*)', '', 'g'))
+	return 0
     catch /^Vim\%((\a\+)\)\=:/
-	call ingo#msg#VimExceptionMsg()
+	call ingo#err#SetVimException()
+	return 0
     endtry
 endfunction
 

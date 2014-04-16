@@ -7,12 +7,13 @@
 "   - ingo/fs/path.vim autoload script
 "   - ingo/str.vim autoload script
 "
-" Copyright: (C) 2012-2013 Ingo Karkat
+" Copyright: (C) 2012-2014 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   2.40.008	23-Mar-2014	Return success status to abort on errors.
 "   2.32.007	23-Dec-2013	Handle dot prefixes (e.g. ".txt") in root
 "				completion.
 "				Also offer multi-extension roots (e.g.
@@ -45,7 +46,7 @@ function! EditSimilar#Root#Open( opencmd, isCreateNew, filespec, newExtension )
     let l:rootRemovalNum = (strlen(l:dots) > 1 ? strlen(l:dots) : 1)
 
     let l:newFilespec = fnamemodify(a:filespec, repeat(':r', l:rootRemovalNum)) . (! empty(l:newExtension) ? '.' . l:newExtension : '')
-    call EditSimilar#Open( a:opencmd, a:isCreateNew, 1, a:filespec, l:newFilespec, fnamemodify(l:newFilespec, ':t'))
+    return EditSimilar#Open( a:opencmd, a:isCreateNew, 1, a:filespec, l:newFilespec, fnamemodify(l:newFilespec, ':t'))
 endfunction
 
 function! s:Complete( dots, argLead, filenameGlob )

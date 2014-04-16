@@ -4,6 +4,7 @@
 "   - ingo/cmdargs/file.vim autoload script
 "   - ingo/cmdargs/glob.vim autoload script
 "   - ingo/compat.vim autoload script
+"   - ingo/err.vim autoload script
 "   - ingo/escape/file.vim autoload script
 "
 " Copyright: (C) 2012-2014 Ingo Karkat
@@ -12,6 +13,12 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   2.40.009	23-Mar-2014	Return success status to abort on errors.
+"   2.33.008	18-Mar-2014	Add a:isSkipVisible flag to
+"				EditSimilar#Pattern#Split() to support the
+"				:BDeletePattern command, which isn't concerned
+"				with _opening_ files, so the check for already
+"				visible buffers shouldn't apply to it.
 "   2.32.007	11-Feb-2014	New
 "				ingo#cmdargs#file#FilterFileOptionsAndCommands()
 "				API returns fileOptionsAndCommands as a List to
@@ -31,7 +38,7 @@
 "   2.00.001	09-Jun-2012	file creation from autoload/EditSimilar.vim.
 
 " Pattern commands.
-function! EditSimilar#Pattern#Split( splitcmd, filePatternsString )
+function! EditSimilar#Pattern#Split( splitcmd, filePatternsString, isSkipVisible )
     let l:filePatterns = ingo#cmdargs#file#SplitAndUnescape(a:filePatternsString)
 
     let l:openCnt = 0
@@ -46,7 +53,7 @@ function! EditSimilar#Pattern#Split( splitcmd, filePatternsString )
     let l:exFileOptionsAndCommands = join(map(l:fileOptionsAndCommands, "escape(v:val, '\\ ')"))
 
     for l:filespec in map(l:filespecs, 'fnamemodify(v:val, ":p")')
-	if bufwinnr(ingo#escape#file#bufnameescape(l:filespec)) == -1
+	if ! a:isSkipVisible || bufwinnr(ingo#escape#file#bufnameescape(l:filespec)) == -1
 	    " The glob (usually) returns file names sorted alphabetially, and
 	    " the splits should also be arranged like that (like vim -o file1
 	    " file2 file3 does). So, we only observe 'splitbelow' and
@@ -54,7 +61,12 @@ function! EditSimilar#Pattern#Split( splitcmd, filePatternsString )
 	    " :belowright.
 	    let l:splitWhere = (l:openCnt == 0 ? '' : 'belowright')
 
-	    execute l:splitWhere a:splitcmd l:exFileOptionsAndCommands ingo#compat#fnameescape(fnamemodify(l:filespec, ':~:.'))
+	    try
+		execute l:splitWhere a:splitcmd l:exFileOptionsAndCommands ingo#compat#fnameescape(fnamemodify(l:filespec, ':~:.'))
+	    catch /^Vim\%((\a\+)\)\=:E/
+		call ingo#err#SetVimException()
+		return 0
+	    endtry
 	    let l:openCnt += 1
 	endif
     endfor
@@ -63,10 +75,12 @@ function! EditSimilar#Pattern#Split( splitcmd, filePatternsString )
     if l:openCnt > 1
 	wincmd =
     elseif len(l:filespecs) == 0
-	call ingo#msg#ErrorMsg('No matches')
+	call ingo#err#Set('No matches')
+	return 0
     elseif l:openCnt == 0
 	echomsg 'No new matches that haven''t yet been opened'
     endif
+    return 1
 endfunction
 
 " vim: set ts=8 sts=4 sw=4 noexpandtab ff=unix fdm=syntax :
