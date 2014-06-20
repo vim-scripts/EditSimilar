@@ -10,6 +10,8 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   2.41.006	23-May-2014	Use ingo#fs#path#Exists() instead of
+"				filereadable().
 "   2.40.005	23-Mar-2014	Return success status to abort on errors.
 "   2.31.004			Replace EditSimilar#ErrorMsg() with
 "				ingo#msg#ErrorMsg().
@@ -84,7 +86,7 @@ function! s:CheckNextDigitBlock( filespec, numberString, isDescending, ... )
 endfunction
 function! s:ApplyOffset( filespec, direction, difference )
     let [l:replacementNumber, l:replacementNumberString, l:replacement] = s:Offset(a:filespec, a:direction * a:difference, 0)
-    if l:replacementNumber == 0 && a:direction == -1 && a:difference > 1 && ! filereadable(l:replacement)
+    if l:replacementNumber == 0 && a:direction == -1 && a:difference > 1 && ! ingo#fs#path#Exists(l:replacement)
 	let [l:replacementNumber, l:replacementNumberString, l:replacement] = s:Offset(a:filespec, a:direction * a:difference, 1)
     endif
     let l:replacementMsg = '#' . l:replacementNumberString
@@ -117,7 +119,7 @@ function! EditSimilar#Offset#Open( opencmd, isCreateNew, isFindNextNonExisting, 
 	while l:difference < l:differenceMax
 	    let [l:replacementNumber, l:replacementNumberString, l:replacement] = s:Offset(a:filespec, a:direction * l:difference, 0)
 	    if empty(l:replacementMsg) | let l:replacementMsg = '#' . l:replacementNumberString | endif
-	    if filereadable(l:replacement) || l:replacementNumber == 0
+	    if ingo#fs#path#Exists(l:replacement) || l:replacementNumber == 0
 		break
 	    endif
 	    let l:difference += s:CheckNextDigitBlock(a:filespec, l:replacementNumberString, (a:direction == -1))
@@ -137,7 +139,7 @@ function! EditSimilar#Offset#Open( opencmd, isCreateNew, isFindNextNonExisting, 
 	while l:difference > 0
 	    let [l:replacementNumber, l:replacementNumberString, l:replacement] = s:Offset(a:filespec, a:direction * l:difference, 0)
 	    if empty(l:replacementMsg) | let l:replacementMsg = '#' . l:replacementNumberString | endif
-	    if filereadable(l:replacement)
+	    if ingo#fs#path#Exists(l:replacement)
 		break
 	    endif
 	    let l:difference -= s:CheckNextDigitBlock(a:filespec, l:replacementNumberString, (a:direction != -1))

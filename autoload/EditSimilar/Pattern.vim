@@ -63,7 +63,7 @@ function! EditSimilar#Pattern#Split( splitcmd, filePatternsString, isSkipVisible
 
 	    try
 		execute l:splitWhere a:splitcmd l:exFileOptionsAndCommands ingo#compat#fnameescape(fnamemodify(l:filespec, ':~:.'))
-	    catch /^Vim\%((\a\+)\)\=:E/
+	    catch /^Vim\%((\a\+)\)\=:/
 		call ingo#err#SetVimException()
 		return 0
 	    endtry

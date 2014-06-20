@@ -3,6 +3,8 @@
 " DEPENDENCIES:
 "   - ingo/compat.vim autoload script
 "   - ingo/err.vim autoload script
+"   - ingo/fs/path.vim autoload script
+"   - ingo/escape/file.vim autoload script
 "
 " Copyright: (C) 2009-2014 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
@@ -10,6 +12,7 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   2.41.025	23-May-2014	Refactoring: Use ingo#fs#path#Exists().
 "   2.40.024	23-Mar-2014	Return success status to abort on errors.
 "   2.32.023	17-Jan-2014	Add workaround for editing via :pedit, which
 "				uses the CWD of existing preview window instead
@@ -139,7 +142,7 @@ function! EditSimilar#Open( opencmd, isCreateNew, isFilePattern, originalFilespe
 	return 0
     endif
 
-    if a:isFilePattern && ! filereadable(l:filespecToOpen) && ! isdirectory(l:filespecToOpen)
+    if a:isFilePattern && ! ingo#fs#path#Exists(l:filespecToOpen)
 	let l:files = split(glob(l:filespecToOpen), "\n")
 	if len(l:files) > 1
 	    call ingo#err#Set('Too many file names')
@@ -152,8 +155,8 @@ function! EditSimilar#Open( opencmd, isCreateNew, isFilePattern, originalFilespe
 	    endif
 	endif
     endif
-    if ! filereadable(l:filespecToOpen) && ! isdirectory(l:filespecToOpen)
-	if bufexists(l:filespecToOpen)
+    if ! ingo#fs#path#Exists(l:filespecToOpen)
+	if bufexists(l:filespecToOpen)  " Note: bufexists() does not need ingo#escape#file#bufnameescape() escaping; it only matches relative or full paths, anyway.
 	    " The file only exists in an unpersisted Vim buffer so far.
 	else
 	    if ! a:isCreateNew

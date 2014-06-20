@@ -29,6 +29,8 @@ RELATED WORKS
   you to open the autoload file from the plugin.
 - nextfile (vimscript #4698) has definitions of related files (like Rails
   controllers, views, model, tests), and can edit a next file via a mapping.
+- projectile (https://github.com/tpope/vim-projectile) allows you to define
+  per-project settings and navigation commands, e.g. :Eplugin and :Edoc.
 
 USAGE
 Substitutions: Change all occurrences via {text}={replacement} in the
@@ -46,7 +48,7 @@ simpler file wildcards).
 :SViewSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
 :DiffSplitSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
 :FileSubstitute {text}={replacement} [{text}={replacement} [...]]
-:WriteSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
+:[range]WriteSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
 :SaveSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
 :BDeleteSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
 

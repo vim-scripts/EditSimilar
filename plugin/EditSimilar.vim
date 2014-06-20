@@ -13,6 +13,12 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   2.41.019	20-Jun-2014	BUG: :{range}WritePlus 999 doesn't actually
+"				work, because it executes as
+"				999,999WriteOverBuffer.
+"				Move the -range=% definition for the :Write*
+"				commands from the command prefix to a new
+"				isSupportRange option.
 "   2.40.018	24-Mar-2014	Allow to :write partial buffer contents by
 "				defining -range=% on :Write... commands that do
 "				not yet use the count.
@@ -113,7 +119,7 @@ call EditSimilar#CommandBuilder#SimilarFileOperations('VSplit',         join([g:
 call EditSimilar#CommandBuilder#SimilarFileOperations('SView',          join([g:EditSimilar_splitmode, 'sview']),         1, '<bang>0', {'omitOperationsWorkingOnlyOnExistingFiles': 0, 'completeAnyRoot': 0})
 call EditSimilar#CommandBuilder#SimilarFileOperations('DiffSplit',      join([g:EditSimilar_diffsplitmode, 'diffsplit']), 1, '<bang>0', {'omitOperationsWorkingOnlyOnExistingFiles': 0, 'completeAnyRoot': 0})
 call EditSimilar#CommandBuilder#SimilarFileOperations('File',           'file',                                           0, 1,         {'omitOperationsWorkingOnlyOnExistingFiles': 1, 'completeAnyRoot': 1})
-call EditSimilar#CommandBuilder#SimilarFileOperations('-range=% Write', '<line1>,<line2>WriteOverBuffer<bang>',           1, 1,         {'omitOperationsWorkingOnlyOnExistingFiles': 1, 'completeAnyRoot': 1})
+call EditSimilar#CommandBuilder#SimilarFileOperations('Write',          '<line1>,<line2>WriteOverBuffer<bang>',           1, 1,         {'omitOperationsWorkingOnlyOnExistingFiles': 1, 'completeAnyRoot': 1, 'isSupportRange': 1})
 call EditSimilar#CommandBuilder#SimilarFileOperations('Save',           'SaveOverBufferAs<bang>',                         1, 1,         {'omitOperationsWorkingOnlyOnExistingFiles': 1, 'completeAnyRoot': 1})
 call EditSimilar#CommandBuilder#SimilarFileOperations('BDelete',        'bdelete<bang>',                                  1, 1,         {'omitOperationsWorkingOnlyOnExistingFiles': 0, 'completeAnyRoot': 0})
 

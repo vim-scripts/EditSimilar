@@ -45,6 +45,8 @@ RELATED WORKS								     *
   you to open the autoload file from the plugin.
 - nextfile (vimscript #4698) has definitions of related files (like Rails
   controllers, views, model, tests), and can edit a next file via a mapping.
+- projectile (https://github.com/tpope/vim-projectile) allows you to define
+  per-project settings and navigation commands, e.g. :Eplugin and :Edoc.
 
 ==============================================================================
 USAGE							   *EditSimilar-usage*
@@ -112,7 +114,7 @@ simpler file wildcards).
 							     *:FileSubstitute*
 :FileSubstitute {text}={replacement} [{text}={replacement} [...]]
 							    *:WriteSubstitute*
-:WriteSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
+:[range]WriteSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
 							     *:SaveSubstitute*
 :SaveSubstitute[!] {text}={replacement} [{text}={replacement} [...]]
 			Replaces all occurrences of {text} in the currently
@@ -180,8 +182,8 @@ edited file.
 :[N]FilePlus[!] [N]
 :[N]FileMinus[!] [N]
 						 *:WriteMinus* *:WritePlus*
-:[N]WritePlus[!] [N]
-:[N]WriteMinus[!] [N]
+:[range]WritePlus[!] [N]
+:[range]WriteMinus[!] [N]
 						   *:SaveMinus* *:SavePlus*
 :[N]SavePlus[!] [N]
 :[N]SaveMinus[!] [N]
@@ -202,8 +204,8 @@ edited file.
 			test007.txt in a directory also containing 003-013.
 			:WritePlus     -> file exists
 			:WritePlus!    -> test008.txt
-			:99WritePlus   -> test014.txt [New File]
-			:99WritePlus!  -> test106.txt [New File]
+			:WritePlus 99  -> test014.txt [New File]
+			:WritePlus! 99 -> test106.txt [New File]
 <						*:BDeleteMinus* *:BDeletePlus*
 :[N]BDeletePlus[!] [N]
 :[N]BDeleteMinus[!] [N]
@@ -297,7 +299,7 @@ This is an enhanced version of the built-in: >
 								   *:FileRoot*
 :FileRoot {extension}
 								  *:WriteRoot*
-:WriteRoot[!] {extension}
+:[range]WriteRoot[!] {extension}
 								   *:SaveRoot*
 :SaveRoot[!] {extension}
 			Sets / saves a file with the current file's path and
@@ -367,7 +369,7 @@ To uninstall, use the |:RmVimball| command.
 DEPENDENCIES					    *EditSimilar-dependencies*
 
 - Requires Vim 7.0 or higher.
-- Requires the |ingo-library.vim| plugin (vimscript #4433), version 1.018 or
+- Requires the |ingo-library.vim| plugin (vimscript #4433), version 1.019 or
   higher.
 - Optional, recommended: cmdalias plugin (vimscript #746)
 
@@ -418,6 +420,12 @@ IDEAS							    *EditSimilar-ideas*
 
 ==============================================================================
 HISTORY							 *EditSimilar-history*
+
+2.41	20-Jun-2014
+- BUG: :{range}WritePlus 999 doesn't actually work, because it executes as
+  999,999WriteOverBuffer.
+- Refactoring: Use ingo#fs#path#Exists().
+  *** You need to update to ingo-library (vimscript #4433) version 1.019! ***
 
 2.40	16-Apr-2014
 - Add :BDelete... comands, which are especially useful for when "E139: File
